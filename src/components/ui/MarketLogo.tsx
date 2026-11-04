@@ -28,29 +28,35 @@ export function MarketLogo({
   const src = logoSrc || m.logo;
   const baseH = height ?? (variant === "compact" ? 18 : 56);
   const scale = m.heightScale ?? 1.0;
-  const h = Math.round(baseH * scale);
-  const w =
-    width ??
-    (m.logoHeight && m.logoWidth ? Math.round((h / m.logoHeight) * m.logoWidth) : 160);
 
   if (isAvailable && src) {
     const isSvg = src.toLowerCase().endsWith(".svg");
+    const imgAspect = m.logoWidth / m.logoHeight;
+    const visibleH = Math.round(baseH * scale);
+    const visibleW = width ?? Math.round(visibleH * imgAspect);
 
     return (
-      <Image
-        src={src}
-        alt={m.name}
-        width={w}
-        height={h}
-        unoptimized={isSvg}
-        className={`object-contain max-w-full ${className}`}
-        style={{ height: `${h}px`, width: "auto" }}
-      />
+      <span
+        className={`market-logo-wrapper relative inline-flex items-center justify-center shrink-0 ${className}`}
+        style={{ width: `${visibleW}px`, height: `${baseH}px` }}
+      >
+        <Image
+          src={src}
+          alt={m.name}
+          width={visibleW}
+          height={visibleH}
+          unoptimized={isSvg}
+          className="object-contain shrink-0 max-h-none"
+          style={{
+            width: `${visibleW}px`,
+            height: `${visibleH}px`,
+          }}
+        />
+      </span>
     );
   }
 
   // Missing logo text fallback:
-  // Compact style for collection chips: Archivo 700, 11px, uppercase, tracking 0.12em
   if (variant === "compact") {
     return (
       <span
@@ -61,7 +67,6 @@ export function MarketLogo({
     );
   }
 
-  // Default large style for footer tiles: Archivo 800, 28px
   return (
     <span
       className={`font-sans font-extrabold uppercase tracking-wider text-[28px] leading-tight text-ink ${className}`}

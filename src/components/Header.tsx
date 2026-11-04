@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import Wordmark from "./ui/Wordmark";
 import MenuOverlay from "./MenuOverlay";
 import SearchOverlay from "./SearchOverlay";
+import OutboundLink from "./ui/OutboundLink";
+import MarketLogo from "./ui/MarketLogo";
 
 type MenuMode = "closed" | "hover" | "pinned";
 
@@ -27,7 +29,7 @@ export function Header() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      setIsPastAnnouncement(scrollY > 36);
+      setIsPastAnnouncement(scrollY > 44);
 
       if (isHome) {
         const threshold = window.innerHeight * 0.8;
@@ -124,20 +126,39 @@ export function Header() {
 
   return (
     <>
-      {/* 0. Announcement Bar (36px slim ink bar) */}
-      <div className="absolute top-0 left-0 w-full h-[36px] bg-ink text-cream z-50 flex items-center justify-center border-b border-cream/10 px-4">
-        <a
-          href="#availability"
-          className="font-sans text-[11px] uppercase tracking-[0.2em] font-medium text-cream hover:text-gold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold"
-        >
-          AVAILABLE ON AMAZON · FLIPKART · MEESHO
-        </a>
+      {/* 0. Announcement Bar (44px gold bar with marketplace chips) */}
+      <div
+        id="announcement-bar"
+        className="announcement-bar absolute top-0 left-0 w-full h-[44px] bg-gold text-ink z-50 flex items-center justify-center border-b border-ink/10 px-3 sm:px-4 shadow-xs"
+      >
+        <div className="flex items-center gap-2 sm:gap-3 flex-nowrap whitespace-nowrap overflow-x-auto no-scrollbar py-1">
+          <span className="font-sans text-[11px] sm:text-xs uppercase tracking-[0.18em] font-bold text-ink shrink-0">
+            AVAILABLE ON
+          </span>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {(["amazon", "flipkart", "meesho"] as const).map((mKey) => (
+              <OutboundLink
+                key={mKey}
+                market={mKey}
+                product="collection"
+                className="h-6 sm:h-7 px-2.5 sm:px-3 bg-cream/95 hover:bg-cream border border-ink/15 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105 shadow-2xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ink"
+                aria-label={`Shop SIRRA on ${mKey}`}
+              >
+                <MarketLogo
+                  market={mKey}
+                  height={14}
+                  variant="compact"
+                />
+              </OutboundLink>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Main Sticky Header */}
       <header
         className={`fixed left-0 w-full z-40 transition-[top,background-color,color,border-color,padding] duration-300 ${
-          isPastAnnouncement ? "top-0" : "top-[36px]"
+          isPastAnnouncement ? "top-0" : "top-[44px]"
         } ${
           isSolid
             ? "bg-cream text-ink border-b border-ink/10 py-3 md:py-4 shadow-xs"
@@ -146,7 +167,7 @@ export function Header() {
       >
         <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex items-center justify-between">
           {/* Left: Menu & Search */}
-          <div className="flex items-center gap-6 md:gap-8 flex-1">
+          <div className="header-fade-item flex items-center gap-6 md:gap-8 flex-1">
             <button
               id="header-menu-button"
               ref={menuButtonRef}
@@ -192,7 +213,7 @@ export function Header() {
           </div>
 
           {/* Right: Where to buy */}
-          <div className="flex-1 flex justify-end">
+          <div className="header-fade-item flex-1 flex justify-end">
             <Link
               href="#availability"
               className="font-sans uppercase text-xs md:text-sm tracking-widest font-semibold hover:opacity-75 transition-opacity p-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold"

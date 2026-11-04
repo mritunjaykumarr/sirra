@@ -31,16 +31,21 @@ export function CollectionGridSection({
     <section
       id="collection"
       ref={sectionRef}
-      className="w-full bg-grey py-18 md:py-30 px-5 md:px-10"
+      className="w-full bg-grey py-18 md:py-28 px-5 md:px-10 border-b border-ink/10"
     >
       <div className="max-w-[1440px] mx-auto flex flex-col gap-10 md:gap-14">
-        {/* Section Header Row */}
+        {/* Section Header Row: Repositioned as Index */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-ink/15 pb-6">
-          <h2 className="font-display text-[clamp(40px,5vw,72px)] text-ink leading-none">
-            The collection
-          </h2>
+          <div>
+            <span className="font-sans text-xs uppercase tracking-[0.2em] font-semibold text-ink/60 mb-2 block">
+              CATALOGUE INDEX
+            </span>
+            <h2 className="font-display text-[clamp(40px,5vw,72px)] text-ink leading-none">
+              Collection at a glance
+            </h2>
+          </div>
           <p className="font-sans text-xs md:text-sm text-ink/75 max-w-md uppercase tracking-wider font-medium">
-            Four scents, one idea. None outranks another. Buy through our marketplace partners.
+            Four scents, one idea. None outranks another. Explore by profile or marketplace.
           </p>
         </div>
 
@@ -51,7 +56,6 @@ export function CollectionGridSection({
               key={product.slug}
               product={product}
               availableLogos={availableLogos}
-              showDiscoverLink={true}
             />
           ))}
         </div>

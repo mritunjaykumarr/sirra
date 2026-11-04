@@ -3,7 +3,6 @@ const puppeteer = require("puppeteer-core");
 const { spawn } = require("child_process");
 const http = require("http");
 const path = require("path");
-const fs = require("fs");
 
 const BRAIN_DIR = "C:\\Users\\mritu\\.gemini\\antigravity\\brain\\74917b17-a467-4c57-a49e-85ab1fbbe3a8";
 const CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
@@ -53,10 +52,8 @@ async function runVerification() {
 
   // Check if server is already running on port 3000
   let serverProcess = null;
-  let alreadyRunning = false;
   try {
     await waitForServer(BASE_URL, 1500);
-    alreadyRunning = true;
     console.log("✓ Server already active on", BASE_URL);
   } catch {
     console.log("[1/9] Starting Next.js production server on port 3000...");

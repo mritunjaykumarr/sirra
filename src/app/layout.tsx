@@ -22,6 +22,7 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://sirra.in"),
   title: "SIRRA · Your Sirra.",
   description: "Chase your top-class self.",
 };

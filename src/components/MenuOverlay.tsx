@@ -37,19 +37,18 @@ const MENU_ITEMS: MenuItem[] = [
     isAnchor: true,
   },
   {
-    // TODO: update href to point at #flexes when the full section exists
     title: "Four flexes",
     label: "ONE IDEA · FOUR FLEXES",
-    href: "/#top",
+    href: "/#scents",
     preview: "flexes",
     isAnchor: true,
   },
   {
     title: "The collection",
     label: "50ML EAU DE PARFUM",
-    href: "/collection",
+    href: "/#collection",
     preview: "collection",
-    isAnchor: false,
+    isAnchor: true,
   },
   {
     title: "Where to buy",

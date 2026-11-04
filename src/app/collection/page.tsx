@@ -6,18 +6,16 @@ import {
   CollectionHero,
   FilterBar,
   ProductCard,
-  ProductDrawer,
 } from "@/components/collection";
-import { PRODUCTS, getProduct } from "@/content";
+import { PRODUCTS } from "@/content";
 import { useGsap, fadeUpStagger, refreshScroll } from "@/lib/motion";
 
 function CollectionContent() {
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
 
-  // Read initial query params from URL
+  // Read initial family param from URL
   const initialFamilyParam = searchParams.get("family");
-  const initialOpenParam = searchParams.get("open");
 
   const [activeFamily, setActiveFamily] = useState<string>(() => {
     if (!initialFamilyParam) return "All";
@@ -25,11 +23,6 @@ function CollectionContent() {
       (f) => f.toLowerCase() === initialFamilyParam.toLowerCase()
     );
     return match || "All";
-  });
-
-  const [openedSlug, setOpenedSlug] = useState<string | null>(() => {
-    if (!initialOpenParam) return null;
-    return getProduct(initialOpenParam) ? initialOpenParam : null;
   });
 
   const gridRef = useRef<HTMLDivElement>(null);
@@ -49,35 +42,18 @@ function CollectionContent() {
     refreshScroll();
   }, []);
 
-  // Sync state with URL without triggering full page reload or scrolling
-  const updateUrl = (newFamily: string, newOpen: string | null) => {
+  // Sync family state with URL without triggering full page reload
+  const handleSelectFamily = (family: string) => {
+    setActiveFamily(family);
     startTransition(() => {
       const params = new URLSearchParams();
-      if (newFamily.toLowerCase() !== "all") {
-        params.set("family", newFamily.toLowerCase());
-      }
-      if (newOpen) {
-        params.set("open", newOpen);
+      if (family.toLowerCase() !== "all") {
+        params.set("family", family.toLowerCase());
       }
       const queryString = params.toString();
       const newUrl = queryString ? `/collection?${queryString}` : "/collection";
       window.history.replaceState(null, "", newUrl);
     });
-  };
-
-  const handleSelectFamily = (family: string) => {
-    setActiveFamily(family);
-    updateUrl(family, openedSlug);
-  };
-
-  const handleOpenDrawer = (slug: string) => {
-    setOpenedSlug(slug);
-    updateUrl(activeFamily, slug);
-  };
-
-  const handleCloseDrawer = () => {
-    setOpenedSlug(null);
-    updateUrl(activeFamily, null);
   };
 
   // Filter calculation
@@ -87,7 +63,6 @@ function CollectionContent() {
   };
 
   const matchingCount = PRODUCTS.filter((p) => isFamilyMatch(p.families)).length;
-  const openedProduct = openedSlug ? getProduct(openedSlug) || null : null;
 
   return (
     <div className="w-full flex flex-col bg-grey min-h-screen">
@@ -115,20 +90,12 @@ function CollectionContent() {
                   key={product.slug}
                   product={product}
                   isMatching={isMatch}
-                  onOpenDrawer={handleOpenDrawer}
                 />
               );
             })}
           </div>
         </div>
       </section>
-
-      {/* 4. Product Drawer */}
-      <ProductDrawer
-        product={openedProduct}
-        onClose={handleCloseDrawer}
-        onSelectProduct={handleOpenDrawer}
-      />
     </div>
   );
 }
@@ -140,4 +107,3 @@ export default function CollectionPage() {
     </Suspense>
   );
 }
-

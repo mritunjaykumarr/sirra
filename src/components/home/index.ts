@@ -1,9 +1,12 @@
-export { HeroSplitSection } from "./HeroSplitSection";
+export { HeroFragranceSection } from "./HeroFragranceSection";
 export { MarqueeSection } from "./MarqueeSection";
+export { ScentChapters } from "./ScentChapters";
+export { CollectionGridSection } from "./CollectionGridSection";
 export { IntroStatementSection } from "./IntroStatementSection";
 export { NameCompositionSection } from "./NameCompositionSection";
 export { TruthStatementSection } from "./TruthStatementSection";
-export { CollectionGridSection } from "./CollectionGridSection";
+export { TheFlexSection } from "./TheFlexSection";
+export { ManifestoSection } from "./ManifestoSection";
 export { MantraSection } from "./MantraSection";
 export { MobileStickyBar } from "./MobileStickyBar";
 export { ScrollRefresher } from "./ScrollRefresher";

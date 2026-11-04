@@ -19,6 +19,13 @@ export type LogoManifest = Record<MarketKey, LogoMeta | null>;
 
 export const LOGO_MANIFEST: LogoManifest = logoManifest as LogoManifest;
 
+export interface CropBox {
+  cropX: number; // fraction 0 to 1
+  cropY: number;
+  cropW: number;
+  cropH: number;
+}
+
 export interface Market {
   key: MarketKey;
   name: string;
@@ -29,6 +36,7 @@ export interface Market {
   logoHeight: number;
   hasLogo: boolean;
   heightScale: number;
+  cropBox?: CropBox;
 }
 
 export function getMarketsData(): Record<MarketKey, Market> {
@@ -46,7 +54,7 @@ export function getMarketsData(): Record<MarketKey, Market> {
       logoWidth: amazonMeta ? amazonMeta.width : 603,
       logoHeight: amazonMeta ? amazonMeta.height : 182,
       hasLogo: amazonMeta !== null,
-      heightScale: 0.85,
+      heightScale: 0.95,
     },
     flipkart: {
       key: "flipkart",
@@ -54,10 +62,10 @@ export function getMarketsData(): Record<MarketKey, Market> {
       url: process.env.NEXT_PUBLIC_FLIPKART_URL || "#",
       note: "Shop the full collection",
       logo: flipkartMeta ? flipkartMeta.src : "/logos/flipkart.svg",
-      logoWidth: flipkartMeta ? flipkartMeta.width : 247,
-      logoHeight: flipkartMeta ? flipkartMeta.height : 75,
+      logoWidth: flipkartMeta ? flipkartMeta.width : 924,
+      logoHeight: flipkartMeta ? flipkartMeta.height : 244,
       hasLogo: flipkartMeta !== null,
-      heightScale: 0.78,
+      heightScale: 0.92,
     },
     meesho: {
       key: "meesho",
@@ -68,7 +76,7 @@ export function getMarketsData(): Record<MarketKey, Market> {
       logoWidth: meeshoMeta ? meeshoMeta.width : 1080,
       logoHeight: meeshoMeta ? meeshoMeta.height : 1080,
       hasLogo: meeshoMeta !== null,
-      heightScale: 1.0,
+      heightScale: 0.88,
     },
   };
 }

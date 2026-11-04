@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Wordmark from "./ui/Wordmark";
 import Tag from "./ui/Tag";
 import Label from "./ui/Label";
@@ -29,7 +29,6 @@ const SUGGESTION_CHIPS = [
 
 export function SearchOverlay({ isOpen, onClose, triggerRef }: SearchOverlayProps) {
   const router = useRouter();
-  const pathname = usePathname();
 
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -77,32 +76,9 @@ export function SearchOverlay({ isOpen, onClose, triggerRef }: SearchOverlayProp
   const handleSelect = useCallback(
     (slug: string) => {
       handleClose();
-      if (pathname === "/") {
-        const el = document.getElementById(slug);
-        if (el) {
-          if (
-            typeof window !== "undefined" &&
-            (window as unknown as { lenis?: { scrollTo: (t: HTMLElement, o?: object) => void } }).lenis
-          ) {
-            (window as unknown as { lenis?: { scrollTo: (t: HTMLElement, o?: object) => void } }).lenis?.scrollTo(
-              el,
-              { offset: -70 }
-            );
-          } else {
-            el.scrollIntoView({ behavior: "smooth" });
-          }
-          el.classList.add("ring-2", "ring-gold", "transition-all");
-          setTimeout(() => {
-            el.classList.remove("ring-2", "ring-gold");
-          }, 2000);
-        } else {
-          router.push(`/collection?open=${slug}`);
-        }
-      } else {
-        router.push(`/collection?open=${slug}`);
-      }
+      router.push(`/scent/${slug}`);
     },
-    [handleClose, pathname, router]
+    [handleClose, router]
   );
 
   // Entrance curtain wipe and chip stagger

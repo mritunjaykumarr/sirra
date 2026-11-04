@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/scan-logos.js",
-    "prebuild": "node scripts/scan-logos.js",
+    "predev": "node scripts/scan-logos.js && node scripts/scan-videos.js && node scripts/scan-hero.js",
+    "prebuild": "node scripts/scan-logos.js && node scripts/scan-videos.js && node scripts/scan-hero.js",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

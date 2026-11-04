@@ -11,19 +11,14 @@ import { Product, IMAGES, ProductColor, MarketKey, MARKETS } from "@/content";
 export interface ProductCardProps {
   product: Product;
   isMatching?: boolean;
-  onOpenDrawer?: (slug: string) => void;
   availableLogos?: Record<MarketKey, boolean>;
-  showDiscoverLink?: boolean;
 }
 
 export function ProductCard({
   product,
   isMatching = true,
-  onOpenDrawer,
   availableLogos,
-  showDiscoverLink = true,
 }: ProductCardProps) {
-  const personaImg = IMAGES[product.image];
   const packShotImg = product.packShot || IMAGES[`pack-${product.slug}` as keyof typeof IMAGES];
 
   const hoverColorClasses: Record<ProductColor, string> = {
@@ -40,28 +35,11 @@ export function ProductCard({
     heartthrob: "hover:border-heartthrob",
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // If clicking an interactive child (a, button), do not intercept
-    const target = e.target as HTMLElement;
-    if (target.closest("a") || target.closest("button")) {
-      return;
-    }
-    if (onOpenDrawer) {
-      onOpenDrawer(product.slug);
-    }
-  };
-
-  const handleCardKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
-      const target = e.target as HTMLElement;
-      if (target.closest("a") || target.closest("button")) {
-        return;
-      }
-      if (onOpenDrawer) {
-        e.preventDefault();
-        onOpenDrawer(product.slug);
-      }
-    }
+  const personaPanelBg: Record<ProductColor, string> = {
+    wayfarer: "bg-[#1E3A6B]",
+    equinox: "bg-[#8B7A5E]",
+    silkSmoke: "bg-[#B84A2B]",
+    heartthrob: "bg-[#7A1E26]",
   };
 
   const hasAmazonLogo = availableLogos ? availableLogos.amazon : MARKETS.amazon.hasLogo;
@@ -71,11 +49,6 @@ export function ProductCard({
   return (
     <article
       id={product.slug}
-      onClick={handleCardClick}
-      onKeyDown={handleCardKeyDown}
-      role={onOpenDrawer ? "button" : undefined}
-      tabIndex={onOpenDrawer ? 0 : undefined}
-      aria-label={onOpenDrawer ? `View ${product.name} details` : undefined}
       style={
         !isMatching
           ? { opacity: 0.15, transform: "scale(0.96)", pointerEvents: "none" }
@@ -83,14 +56,19 @@ export function ProductCard({
       }
       className={`product-card scroll-mt-28 md:scroll-mt-36 group relative bg-grey p-5 md:p-6 flex flex-col justify-between border border-[#E2E0D8] transition-all duration-300 ${
         isMatching ? "hover:shadow-md" : ""
-      } ${onOpenDrawer ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" : ""}`}
+      }`}
     >
       <div>
-        {/* Image Container: 4/5 Aspect Ratio with Grey Background */}
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#ECECEA] mb-5 border border-ink/5">
+        {/* Image Container: 4/5 Aspect Ratio with Grey Background & Slide-Up Notes Panel */}
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#ECECEA] mb-5 border border-ink/5 group/image">
           {/* Primary Layer: Pack Shot centered with ~8% breathing room, mix-blend-mode: multiply */}
           <div className="absolute inset-0 p-[8%] flex items-center justify-center z-0">
-            <div className="relative w-full h-full">
+            <div
+              style={{
+                filter: "drop-shadow(0 12px 12px rgba(0,0,0,0.18))",
+              }}
+              className="relative w-full h-full"
+            >
               <Image
                 src={packShotImg.src}
                 alt={packShotImg.alt}
@@ -99,31 +77,49 @@ export function ProductCard({
                 placeholder="blur"
                 blurDataURL={packShotImg.blurDataURL}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
-                className="object-contain object-center mix-blend-multiply transition-transform duration-500"
+                className="object-contain object-center mix-blend-multiply transition-transform duration-500 group-hover:scale-104"
               />
             </div>
           </div>
 
-          {/* Secondary Layer: Persona photograph on desktop hover/focus (hidden on touch devices) */}
-          {personaImg && (
-            <div
-              aria-hidden="true"
-              className="hidden [@media(hover:hover)]:block absolute inset-0 z-10 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-400 ease-out"
-            >
-              <div className="relative w-full h-full overflow-hidden">
-                <Image
-                  src={personaImg.src}
-                  alt={personaImg.alt}
-                  fill
-                  quality={90}
-                  placeholder="blur"
-                  blurDataURL={personaImg.blurDataURL}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
-                  className="object-cover object-center transform scale-104 group-hover:scale-100 group-focus-within:scale-100 transition-transform duration-500 ease-out"
-                />
-              </div>
-            </div>
-          )}
+          {/* Solid Persona Notes Panel on Desktop Hover / Keyboard Focus-Within */}
+          <div
+            className={`hidden [@media(hover:hover)]:flex absolute inset-x-0 bottom-0 ${personaPanelBg[product.color]} text-cream p-4 flex-col justify-end translate-y-full group-hover:translate-y-0 group-focus-within:translate-y-0 transition-transform duration-500 ease-out z-20 pointer-events-none shadow-lg`}
+          >
+            <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-cream/70 font-bold mb-0.5">
+              PROFILE
+            </span>
+            <p className="font-display italic text-sm text-cream font-medium line-clamp-1 mb-2">
+              {product.profile}
+            </p>
+            <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-cream/70 font-bold mb-0.5">
+              NOTES
+            </span>
+            <p className="font-display italic text-xs text-cream/90 leading-snug line-clamp-2">
+              {product.notes.join(", ")}
+            </p>
+          </div>
+        </div>
+
+        {/* Touch devices: static text block instead of hover */}
+        <div className="block [@media(hover:hover)]:hidden mt-[-10px] mb-4 pt-2 border-t border-ink/10">
+          <span className="block font-sans text-[10px] uppercase tracking-[0.18em] text-ink/60 font-semibold mb-0.5">
+            PROFILE
+          </span>
+          <p className="font-display italic text-xs text-ink mb-1.5">
+            {product.profile}
+          </p>
+          <span className="block font-sans text-[10px] uppercase tracking-[0.18em] text-ink/60 font-semibold mb-0.5">
+            NOTES
+          </span>
+          <p className="font-display italic text-xs text-ink/80">
+            {product.notes.join(", ")}
+          </p>
+        </div>
+
+        {/* Screen Reader accessible notes description */}
+        <div className="sr-only">
+          Profile: {product.profile}. Notes: {product.notes.join(", ")}.
         </div>
 
         {/* Card Body: Top Tag in Persona Colour */}
@@ -135,7 +131,12 @@ export function ProductCard({
 
         {/* Title: Cormorant Garamond 28-32px Bold */}
         <h3 className="font-display font-bold text-[clamp(26px,2.2vw,32px)] text-ink leading-tight mb-1">
-          {product.name}
+          <Link
+            href={`/scent/${product.slug}`}
+            className="hover:text-gold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gold"
+          >
+            {product.name}
+          </Link>
         </h3>
 
         {/* Subtitle: Volume & Concentration Archivo 11px Uppercase Tracked */}
@@ -161,83 +162,64 @@ export function ProductCard({
         </p>
       </div>
 
-      {/* Action Row */}
-      <div className="w-full pt-3 border-t border-ink/10">
-        {/* Primary Buy Button */}
-        <OutboundLink
-          market="amazon"
-          product={product.slug}
-          className={`w-full py-3 px-4 bg-ink text-cream text-xs font-sans font-semibold uppercase tracking-wider text-center flex items-center justify-center gap-2 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${hoverColorClasses[product.color]}`}
+      {/* Action Row: Primary Discover Button + Secondary Marketplace Chips */}
+      <div className="w-full pt-3 border-t border-ink/10 flex flex-col gap-3">
+        {/* Primary Discover Button */}
+        <Link
+          href={`/scent/${product.slug}`}
+          className={`w-full py-3 px-4 bg-ink text-cream text-xs font-sans font-semibold uppercase tracking-wider text-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${hoverColorClasses[product.color]}`}
         >
-          {hasAmazonLogo && (
-            <MarketLogo
-              market="amazon"
-              hasLogo={true}
-              height={16}
-              variant="compact"
-              className="max-h-[16px] object-contain brightness-0 invert"
-            />
-          )}
-          <span>Buy on Amazon</span>
-        </OutboundLink>
+          Discover {product.name}
+        </Link>
 
-        {/* Marketplace Chips & Optional Discover Link */}
-        <div className="flex items-center gap-2 mt-2.5">
-          <OutboundLink
-            market="flipkart"
-            product={product.slug}
-            className={`flex-1 min-w-0 h-[38px] bg-cream border border-ink/15 text-ink flex items-center justify-center px-2 transition-all duration-200 hover:-translate-y-0.5 focus-visible:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${hoverBorderClasses[product.color]}`}
-            aria-label={`Buy ${product.name} on Flipkart`}
-          >
-            <div className="flex items-center justify-center max-w-[75%] h-[18px]">
+        {/* Secondary Marketplace Logo Chips under "AVAILABLE ON" */}
+        <div className="w-full flex flex-col gap-1.5 pt-1">
+          <span className="font-sans text-[10px] uppercase tracking-[0.16em] text-ink/55 text-center">
+            AVAILABLE ON
+          </span>
+          <div className="grid grid-cols-3 gap-1.5 w-full">
+            <OutboundLink
+              market="amazon"
+              product={product.slug}
+              className={`h-[34px] bg-cream border border-ink/15 text-ink flex items-center justify-center px-1.5 transition-all duration-200 hover:-translate-y-0.5 focus-visible:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${hoverBorderClasses[product.color]}`}
+              aria-label={`Buy ${product.name} on Amazon`}
+            >
+              <MarketLogo
+                market="amazon"
+                hasLogo={hasAmazonLogo}
+                height={13}
+                variant="compact"
+              />
+            </OutboundLink>
+
+            <OutboundLink
+              market="flipkart"
+              product={product.slug}
+              className={`h-[34px] bg-cream border border-ink/15 text-ink flex items-center justify-center px-1.5 transition-all duration-200 hover:-translate-y-0.5 focus-visible:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${hoverBorderClasses[product.color]}`}
+              aria-label={`Buy ${product.name} on Flipkart`}
+            >
               <MarketLogo
                 market="flipkart"
                 hasLogo={hasFlipkartLogo}
-                height={18}
+                height={14}
                 variant="compact"
               />
-            </div>
-          </OutboundLink>
+            </OutboundLink>
 
-          <OutboundLink
-            market="meesho"
-            product={product.slug}
-            className={`flex-1 min-w-0 h-[38px] bg-cream border border-ink/15 text-ink flex items-center justify-center px-2 transition-all duration-200 hover:-translate-y-0.5 focus-visible:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${hoverBorderClasses[product.color]}`}
-            aria-label={`Buy ${product.name} on Meesho`}
-          >
-            <div className="flex items-center justify-center max-w-[75%] h-[18px]">
+            <OutboundLink
+              market="meesho"
+              product={product.slug}
+              className={`h-[34px] bg-cream border border-ink/15 text-ink flex items-center justify-center px-1.5 transition-all duration-200 hover:-translate-y-0.5 focus-visible:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${hoverBorderClasses[product.color]}`}
+              aria-label={`Buy ${product.name} on Meesho`}
+            >
               <MarketLogo
                 market="meesho"
                 hasLogo={hasMeeshoLogo}
-                height={18}
+                height={14}
                 variant="compact"
               />
-            </div>
-          </OutboundLink>
-
-          {showDiscoverLink && (
-            <div className="shrink-0 flex items-center pl-1">
-              {onOpenDrawer ? (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenDrawer(product.slug);
-                  }}
-                  className="font-sans text-[11px] uppercase tracking-wider font-semibold text-ink/70 hover:text-rust py-1.5 px-2 underline underline-offset-4 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-                >
-                  Discover
-                </button>
-              ) : (
-                <Link
-                  href={`/collection?open=${product.slug}`}
-                  className="font-sans text-[11px] uppercase tracking-wider font-semibold text-ink/70 hover:text-rust py-1.5 px-2 underline underline-offset-4 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-                >
-                  Discover
-                </Link>
-              )}
-            </div>
-          )}
+            </OutboundLink>
+          </div>
         </div>
       </div>
     </article>
@@ -245,4 +227,3 @@ export function ProductCard({
 }
 
 export default ProductCard;
-

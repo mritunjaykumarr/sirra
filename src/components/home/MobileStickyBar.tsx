@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import OutboundLink from "@/components/ui/OutboundLink";
 
 export function MobileStickyBar() {
   const [isVisible, setIsVisible] = useState(false);
@@ -48,17 +47,17 @@ export function MobileStickyBar() {
   return (
     <div className="block md:hidden fixed bottom-0 left-0 w-full z-40 bg-ink/95 backdrop-blur-md border-t border-cream/20 p-3 shadow-2xl transition-all duration-300">
       <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
-        <OutboundLink
-          market="amazon"
+        <a
+          href="#scents"
           className="flex-1 py-3 px-4 bg-cream text-ink text-xs font-sans font-semibold uppercase tracking-wider text-center hover:bg-gold transition-colors"
         >
-          Buy on Amazon
-        </OutboundLink>
+          Discover the collection
+        </a>
         <a
           href="#availability"
           className="px-4 py-3 border border-cream/40 text-cream text-xs font-sans font-semibold uppercase tracking-wider text-center hover:bg-cream/10 transition-colors"
         >
-          More
+          Where to buy
         </a>
       </div>
     </div>
@@ -66,4 +65,3 @@ export function MobileStickyBar() {
 }
 
 export default MobileStickyBar;
-

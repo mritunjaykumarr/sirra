@@ -171,18 +171,7 @@ export interface ProductJsonLd {
     "@type": "Brand";
     name: "SIRRA";
   };
-  offers: {
-    "@type": "AggregateOffer";
-    offerCount: number;
-    priceCurrency?: string;
-    availability: "https://schema.org/InStock";
-    offers: Array<{
-      "@type": "Offer";
-      name: string;
-      url: string;
-      availability: "https://schema.org/InStock";
-    }>;
-  };
+  size: string;
 }
 
 export function getProductJsonLd(
@@ -204,31 +193,7 @@ export function getProductJsonLd(
       "@type": "Brand",
       name: "SIRRA",
     },
-    offers: {
-      "@type": "AggregateOffer",
-      offerCount: 3,
-      availability: "https://schema.org/InStock",
-      offers: [
-        {
-          "@type": "Offer",
-          name: "Amazon",
-          url: product.links.amazon,
-          availability: "https://schema.org/InStock",
-        },
-        {
-          "@type": "Offer",
-          name: "Flipkart",
-          url: product.links.flipkart,
-          availability: "https://schema.org/InStock",
-        },
-        {
-          "@type": "Offer",
-          name: "Meesho",
-          url: product.links.meesho,
-          availability: "https://schema.org/InStock",
-        },
-      ],
-    },
+    size: "50ml",
   };
 }
 
