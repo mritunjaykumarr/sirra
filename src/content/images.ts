@@ -1,0 +1,174 @@
+export interface ImageData {
+  src: string;
+  width: number;
+  height: number;
+  alt: string;
+  blurDataURL: string;
+}
+
+export const PACK_SHOT_SOURCE = {
+  wayfarer: "assets-source/sirra4.jpeg",
+  equinox: "assets-source/sirra3.jpeg",
+  "silk-smoke": "assets-source/sirra2.jpeg",
+  silkSmoke: "assets-source/sirra2.jpeg",
+  heartthrob: "assets-source/sirra1.jpeg",
+} as const;
+
+export type ImageKey =
+  | "hero-mist"
+  | "cover-portrait"
+  | "snapshot-woman"
+  | "name-stone"
+  | "truth-spray"
+  | "flex-wayfarer"
+  | "flex-equinox"
+  | "flex-silk-smoke"
+  | "flex-heartthrob"
+  | "voice-portrait"
+  | "mantra-bottle"
+  | "pack-wayfarer"
+  | "pack-equinox"
+  | "pack-silk-smoke"
+  | "pack-heartthrob"
+  | "packWayfarer"
+  | "packEquinox"
+  | "packSilkSmoke"
+  | "packHeartthrob";
+
+const PACK_WAYFARER_DATA: ImageData = {
+  src: "/images/pack-wayfarer.jpg",
+  width: 1600,
+  height: 1600,
+  alt: "SIRRA Wayfarer 50ml Eau de Parfum bottle and box",
+  blurDataURL:
+    "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAQABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAwIG/8QAJBAAAgIBAwIHAAAAAAAAAAAAAQIDEQQAEyExUQUGEhUWcZH/xAAUAQEAAAAAAAAAAAAAAAAAAAAB/8QAFxEBAAMAAAAAAAAAAAAAAAAAAQACMf/aAAwDAQACEQMRAD8A0k/mJPkcngi4ORuoA28a2yKBvvXNaefKkZo4WSNWYiyg6/WhycGX3WWdG9PNgsSR+dtTPDmiaIxwKVBFUenPJN6bAYwqrpP/2Q==",
+};
+
+const PACK_EQUINOX_DATA: ImageData = {
+  src: "/images/pack-equinox.jpg",
+  width: 1600,
+  height: 1600,
+  alt: "SIRRA Equinox 50ml Eau de Parfum bottle and box",
+  blurDataURL:
+    "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAQABADASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAABQb/xAAkEAABAgQFBQAAAAAAAAAAAAABAgMABBESBQYhIjEWMkFxwf/EABQBAQAAAAAAAAAAAAAAAAAAAAP/xAAXEQADAQAAAAAAAAAAAAAAAAAAAQIx/9oADAMBAAIRAxEAPwCnVmBleaHMDMpMBbaby8QLCLa1+e4SNjqO1HFdogV3DldQvTCytLZJ1qa8eIS3y7ZLbS3VrOgOgEAqqngzlStP/9k=",
+};
+
+const PACK_SILK_SMOKE_DATA: ImageData = {
+  src: "/images/pack-silk-smoke.jpg",
+  width: 1600,
+  height: 1600,
+  alt: "SIRRA Silk & Smoke 50ml Eau de Parfum bottle and box",
+  blurDataURL:
+    "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAQABADASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAABgT/xAAjEAACAQQAAwURBhIhkRQVMUFR/8QAFAEBAAAAAAAAAAAAAAAAAAAAA//EABgRAAMBAQAAAAAAAAAAAAAAAAABAhJB/9oADAMBAAIRAxEAPwC/lvLbkKVKxkOJISVaCn1BUFOk67jzrf7RXH5vJnKRrLzZBD3kUguTsE9/mnnIoNyZEm2I4AvvoL1nSnRB8URh8ZzfvFi/IiqipcVy4YEHR39UKqq4JlI//9k=",
+};
+
+const PACK_HEARTTHROB_DATA: ImageData = {
+  src: "/images/pack-heartthrob.jpg",
+  width: 1600,
+  height: 1600,
+  alt: "SIRRA Heartthrob 50ml Eau de Parfum bottle and box",
+  blurDataURL:
+    "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAQABADASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAABgX/xAAhEAACAgIDAAIDAAAAAAAAAAABAgMEBREABhIhkSIxcf/EABUBAQEAAAAAAAAAAAAAAAAAAAME/8QAGBEBAAMBAAAAAAAAAAAAAAAAAQACETH/2gAMAwEAAhEDEQA/AKHbe3SU7VvF0qthLcfnU/kFNHXyPvX94Rx2aypylWJr1kq8yBgzkggsN/vjPsGLltyXkrrqZz+BckKfkH64ao9VziZWrLPXVI4pFb17BBAO9cPVZQ1KnZ//2Q==",
+};
+
+export const IMAGES: Record<ImageKey, ImageData> = {
+  "hero-mist": {
+    src: "/images/hero-mist.jpg",
+    width: 769,
+    height: 1024,
+    alt: "Golden perfume mist drifting through a dark room beside a hand on a spray bottle",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAVABADASIAAhEBAxEB/8QAGAAAAwEBAAAAAAAAAAAAAAAAAAMGBAX/xAAfEAACAQQDAQEAAAAAAAAAAAABAgMABAURIUGhUbH/xAAVAQEBAAAAAAAAAAAAAAAAAAACA//EABcRAQEBAQAAAAAAAAAAAAAAAAEAAiH/2gAMAwEAAhEDEQA/AJXKYeazjWYIWhI4auk+PtLSXBohRhIqyynfBYgE78FMnzAkwjWqASErxvqpw30txawxM+3tmJQHtTr817Ucuk7NAeSYpnEQQHW+6yMNMR8ooqpBv//Z",
+  },
+  "cover-portrait": {
+    src: "/images/cover-portrait.jpg",
+    width: 819,
+    height: 1024,
+    alt: "Young man with dark curls in a grey pleated vest against a dark teal wall",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAUABADASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAMFBv/EACUQAAEDAwIGAwAAAAAAAAAAAAECAwQAESEFURITIjEyYUFSgv/EABQBAQAAAAAAAAAAAAAAAAAAAAH/xAAVEQEBAAAAAAAAAAAAAAAAAAABAP/aAAwDAQACEQMRAD8Axy9MfbnSmWFtlMfzcWbBJ+puBnvilOudAuADbNWxqsl8SYaWm1MqbCVNODhCx3JwR8Wz6vSG4kPT20TtRRzFLtyohuf0rcbD3SMING0yc8w4W08Kgeu6hcggYpMuZIluF19wqUoAX9bUUUTf/9k=",
+  },
+  "snapshot-woman": {
+    src: "/images/snapshot-woman.jpg",
+    width: 816,
+    height: 1024,
+    alt: "Woman with her hands on her head, wearing a bindi and a black knit vest, against a blue wall",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAUABADASIAAhEBAxEB/8QAGAAAAwEBAAAAAAAAAAAAAAAAAAQFAgb/xAAjEAACAQMDBAMAAAAAAAAAAAABAgMABBESBQYhIjEWMkFxwf/EABQEBAAAAAAAAAAAAAAAAAAAAAv/xAAbEQACAwADAAAAAAAAAAAAAAABEgACESExYf/aAAwDAQACEQMRAD8AiXCR2s6C7k7C4DDSy5B/cVi2urea5e3MpUxnSrJHq1j1tnOfVI3i3MsijEkqRd4XBYA8mlumzzR3c0yt9jeXPkE8cUi7exVVeuJ0aIFuiFJAKnOPe9S7mJPlZ8dxbc80UVWwDbJ1JXJ//9k=",
+  },
+  "name-stone": {
+    src: "/images/name-stone.jpg",
+    width: 420,
+    height: 1065,
+    alt: "Sepia stone carved with the word SIRRA and the words Rooted, Refined, Unmatched",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAApABADASIAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAABQIEA//EACoQAAIBAwMCAwkAAAAAAAAAAAECAwARIQQSMSJBBVFxBhMUM0JhgbHh/8QAFgEAAwAAAAAAAAAAAAAAAAAAAQID/8QAFhEBAQEAAAAAAAAAAAAAAAAAAQAh/9oADAMBAAIRAxEAPwAzw+SP49yG5IwcYzxWf2uijaWOUnCLbHe/eoiZWkYK1iCe/FTr9FPrtKi7rMg6b8EfeojtZMuXu2eZyowTwfOk9BI8cio27axPORx/Kx36jYkZ8qQ0gVwLkHabjHFBmIpG6yN1snit8MoRbmQ+lDj5kn5/dUn1etFJRv/Z",
+  },
+  "truth-spray": {
+    src: "/images/truth-spray.jpg",
+    width: 683,
+    height: 1024,
+    alt: "Backlit perfume mist sprayed against a neck in the dark",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAYABADASIAAhEBAxEB/8QAGQAAAgMBAAAAAAAAAAAAAAAAAAYCAwUH/8QAIhAAAgEDBAMBAQAAAAAAAAAAAQIRAAMEBRIhMRNBUWGh/8QAFQEBAQAAAAAAAAAAAAAAAAAAAQL/xAAYEQEBAAMAAAAAAAAAAAAAAAAAEQEhMf/aAAwDAQACEQMRAD8AQF03I8K3iFCtyJYCP2KoNtldwxmPf2ui4t7RcjQ1dbgfxWwLixBHHRpVUabfbKYxa3GVQtxsA757afVRZ1cudMWxkPaJ2sYYEMPoqY35FkYyJuZSXtxySI5H8miikP/Z",
+  },
+  "flex-wayfarer": {
+    src: "/images/flex-wayfarer.jpg",
+    width: 768,
+    height: 1024,
+    alt: "Woman leaning in a doorway wearing a white tank, denim shorts and fringe boots",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAVABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgAF/8QAJhAAAgECBAUFAAAAAAAAAAAAAQIDAAQFBhExEhMhQZEVFiNhgf/EABYBAQEBAAAAAAAAAAAAAAAAAAEAAv/EABcRAQEBAQAAAAAAAAAAAAAAAAABIRH/2gAMAwEAAhEDEQA/AC2MRy3uZZxGyfJIBq7hR2HetvL2E+n5inSRhzY0J4R1Cg7de52o9IT7jLXQRHV9WA2BA6DzpSTL0kk+YpriSczNLbB+I/ZA0/KzzDLorc3BucXkuGUAvIGK+K38nSGTFJ5CANYioUDYaiqqiqP/2Q==",
+  },
+  "flex-equinox": {
+    src: "/images/flex-equinox.jpg",
+    width: 768,
+    height: 1024,
+    alt: "Man in a black double-breasted suit beside his own reflection, soft light through sheer curtains",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAVABADASIAAhEBAxEB/8QAGAAAAwEBAAAAAAAAAAAAAAAAAAMGBAX/xAAlEAABAwIGAgMBAAAAAAAAAAABAgMRAAUEBgcSEyExQRQyYoH/xAAWAQEBAQAAAAAAAAAAAAAAAAABAgP/xAAYEQEBAQEBAAAAAAAAAAAAAAABACERMf/aAAwDAQACEQMRAD8A16gvv4C5YC4BxxTYBT8dSoSSPfVKtOa137MbjSUKZwnDubY2gncPJKh37pGq7y+S3sqI+q19CB5AqayM5tzHJMSw4Jj8zWSYtXdCqNQsI2/mGxsuFRS8ShUmTG8VyOFq2ahXNvDoAbSlwpQOgnckGP5NFFC5J7f/2Q==",
+  },
+  "flex-silk-smoke": {
+    src: "/images/flex-silk-smoke.jpg",
+    width: 820,
+    height: 1024,
+    alt: "Woman seated on a chair in an embroidered blouse and lehenga against a rust printed fabric wall",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAUABADASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAMEBf/EACAQAAICAQQDAQAAAAAAAAAAAAECAxEABBIhMQUicUH/xAAXAQADAQAAAAAAAAAAAAAAAAACAwQF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECMREyQv/aAAwDAQACEQMRAD8Ax4olC94TwKRi45YnEiSMOBuW1LEkd8fLxksysAyVskXctG8jw7NBSjRNrIl0msUw2CDxZvvLJ4kk8YkjKNy+tjj8u/uGGHyIWzP/2Q==",
+  },
+  "flex-heartthrob": {
+    src: "/images/flex-heartthrob.jpg",
+    width: 683,
+    height: 1024,
+    alt: "Woman in a black ribbed top with one hand on her head, leaning on a stone pillar",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAYABADASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAUGBP/EACQQAAECBgIBBQAAAAAAAAAAAAECAwAEBRESIQYxQRQiYXHx/8QAFgEBAQEAAAAAAAAAAAAAAAAAAQAC/8QAFhEBAQEAAAAAAAAAAAAAAAAAAQAh/9oADAMBAAIRAxEAPwCHp8j6iXfc37etQuIsSIpJIuMcecLTarqVkVp+LdjyNfsK0yr9RS8+224t0qyJSnS79gW8xLITBc6WaLg2sBWGNr73G/j6G2qbLTCVEOJK1WJ1c66+hBBCbYcv/9k=",
+  },
+  "voice-portrait": {
+    src: "/images/voice-portrait.jpg",
+    width: 768,
+    height: 1024,
+    alt: "Bearded man seated in a dark suit with a colourful tie and rings against a smoky teal backdrop",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAVABADASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAQDBQb/xAAhEAACAgIBBAMAAAAAAAAAAAABAgARAwQFEhMhMSJRcf/EABcBAAMBAAAAAAAAAAAAAAAAAAABAgP/xAAXEQEBAQEAAAAAAAAAAAAAAAAAAQIh/9oADAMBAAIRAxEAPwDLZtfqalAs3Vmogyq2DrA8XLUhMjKHIKFgpH6YhyxROSzvqoBrdwqoX1X1KlZ6nC2Pcc9qhRDHyD7kDZnyEKT8bJAhCMP/2Q==",
+  },
+  "mantra-bottle": {
+    src: "/images/mantra-bottle.jpg",
+    width: 768,
+    height: 1024,
+    alt: "Close-up of a metal spray cap on a glass perfume bottle in grayscale",
+    blurDataURL:
+      "data:image/jpeg;base64,/9j/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAVABADASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAYDBAX/xAAmEAABAwMCBQUAAAAAAAAAAAABAgMEABEhBRIGExUxgUFCUZGx/8QAFQEBAQAAAAAAAAAAAAAAAAAAAgH/xAAWEQEBAQAAAAAAAAAAAAAAAAAAARH/2gAMAwEAAhEDEQA/AFCDwrqsxIUmMW0H3OYx81uaTwXEk7lOT0v7TZQZxY+aY5usQtP3RDqZPMbOwo2kt+nc9/2q0HU4cKXKcVMEhp5Yty9osQAPJxULCxDkIiOTlCKw64o4UtNwkYwB5qbr4XEfZMJsJc72Vj6taiihTj//2Q==",
+  },
+  // Phase 4D Pack Shots (both kebab-case and camelCase supported)
+  "pack-wayfarer": PACK_WAYFARER_DATA,
+  packWayfarer: PACK_WAYFARER_DATA,
+  "pack-equinox": PACK_EQUINOX_DATA,
+  packEquinox: PACK_EQUINOX_DATA,
+  "pack-silk-smoke": PACK_SILK_SMOKE_DATA,
+  packSilkSmoke: PACK_SILK_SMOKE_DATA,
+  "pack-heartthrob": PACK_HEARTTHROB_DATA,
+  packHeartthrob: PACK_HEARTTHROB_DATA,
+};
+
+export default IMAGES;

@@ -1,0 +1,17 @@
+{
+  "amazon": {
+    "src": "/logos/amazon.svg",
+    "width": 603,
+    "height": 182
+  },
+  "flipkart": {
+    "src": "/logos/flipkart.svg",
+    "width": 247,
+    "height": 75
+  },
+  "meesho": {
+    "src": "/logos/meesho.png",
+    "width": 1080,
+    "height": 1080
+  }
+}
