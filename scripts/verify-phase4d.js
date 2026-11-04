@@ -51,29 +51,25 @@ async function runVerification() {
   const consoleMessages = [];
   const networkErrors = [];
 
-  // 1. Start Next.js server
-  console.log("[1/9] Starting Next.js production server on port 3000...");
-  const serverProcess = spawn("npx.cmd", ["next", "start", "-p", String(PORT)], {
-    cwd: path.resolve(__dirname, ".."),
-    stdio: "pipe",
-    shell: true,
-  });
-
-  serverProcess.stdout.on("data", (d) => {
-    const s = d.toString();
-    if (s.includes("Ready in") || s.includes("started server on")) {
-      console.log("Server output:", s.trim());
-    }
-  });
-
-  serverProcess.stderr.on("data", (d) => {
-    console.error("Server stderr:", d.toString().trim());
-  });
-
+  // Check if server is already running on port 3000
+  let serverProcess = null;
+  let alreadyRunning = false;
   try {
+    await waitForServer(BASE_URL, 1500);
+    alreadyRunning = true;
+    console.log("✓ Server already active on", BASE_URL);
+  } catch {
+    console.log("[1/9] Starting Next.js production server on port 3000...");
+    serverProcess = spawn("npx.cmd", ["next", "start", "-p", String(PORT)], {
+      cwd: path.resolve(__dirname, ".."),
+      stdio: "pipe",
+      shell: true,
+    });
     await waitForServer(BASE_URL);
     console.log("✓ Server is ready at", BASE_URL);
+  }
 
+  try {
     // 2. Launch Puppeteer
     console.log("[2/9] Launching headless browser...");
     const browser = await puppeteer.launch({
@@ -189,16 +185,15 @@ async function runVerification() {
     // 6. Test Search Overlay Thumbnail
     console.log("[6/9] Testing SearchOverlay pack shot thumbnail...");
     // Find and click search button
-    const searchBtn = await page.$("button[aria-label*='Search'], button:has-text('Search')");
-    if (!searchBtn) {
-      // Look for Search text button in header
+    const searchBtn = await page.$('button[aria-label="Open search"]');
+    if (searchBtn) {
+      await searchBtn.click();
+    } else {
       await page.evaluate(() => {
         const btns = Array.from(document.querySelectorAll("button"));
         const b = btns.find((el) => el.textContent.trim().toLowerCase() === "search");
         if (b) b.click();
       });
-    } else {
-      await searchBtn.click();
     }
 
     await new Promise((r) => setTimeout(r, 600));
@@ -238,22 +233,24 @@ async function runVerification() {
     // 7. Verify Menu Preview Mosaic
     console.log("[7/9] Testing MenuOverlay 'The collection' 2x2 pack shot mosaic...");
     // Click Menu trigger button
-    await page.evaluate(() => {
-      const btns = Array.from(document.querySelectorAll("button"));
-      const b = btns.find((el) => el.textContent.trim().toLowerCase() === "menu");
-      if (b) b.click();
-    });
+    const menuBtn = await page.$("#header-menu-button");
+    if (menuBtn) {
+      await menuBtn.click();
+    } else {
+      await page.evaluate(() => {
+        const btns = Array.from(document.querySelectorAll("button"));
+        const b = btns.find((el) => el.textContent.trim().toLowerCase() === "menu");
+        if (b) b.click();
+      });
+    }
     await new Promise((r) => setTimeout(r, 600));
 
-    // Hover "The collection" menu link
-    await page.evaluate(() => {
-      const links = Array.from(document.querySelectorAll("a"));
-      const colLink = links.find((l) => l.textContent.includes("The collection"));
-      if (colLink) {
-        colLink.dispatchEvent(new MouseEvent("mouseenter", { bubbles: true }));
-      }
-    });
-    await new Promise((r) => setTimeout(r, 700));
+    // Hover "The collection" menu link with real pointer
+    const colLink = await page.$('a[href="/collection"]');
+    if (colLink) {
+      await colLink.hover();
+      await new Promise((r) => setTimeout(r, 800));
+    }
 
     const menuMosaicCheck = await page.evaluate(() => {
       const aside = document.querySelector("aside[aria-hidden='true']");
@@ -376,8 +373,10 @@ async function runVerification() {
     console.log("=== All Tests Completed Successfully ===");
     return testResults;
   } finally {
-    console.log("Stopping server process...");
-    serverProcess.kill("SIGTERM");
+    if (serverProcess) {
+      console.log("Stopping server process...");
+      serverProcess.kill("SIGTERM");
+    }
   }
 }
 
@@ -391,3 +390,4 @@ runVerification()
     console.error("Verification failed:", err);
     process.exit(1);
   });
+

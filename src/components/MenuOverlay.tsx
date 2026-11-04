@@ -214,6 +214,7 @@ export function MenuOverlay({
         gsap.to(previewRef.current, { opacity: 1, duration: 0.3 });
       } else {
         gsap.to(previewRef.current, {
+          x: "0%",
           xPercent: 0,
           duration: 0.5,
           ease: "power3.out",
@@ -225,7 +226,8 @@ export function MenuOverlay({
         gsap.to(previewRef.current, { opacity: 0, duration: 0.2 });
       } else {
         gsap.to(previewRef.current, {
-          xPercent: -100,
+          x: "-100%",
+          xPercent: 0,
           duration: 0.4,
           ease: "power3.in",
         });
