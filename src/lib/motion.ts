@@ -192,7 +192,7 @@ export function wordReveal(
     return;
   }
 
-  const { start = "top 80%", end = "bottom 55%", scrub = 0.5 } = options || {};
+  const { start = "top 80%", end = "bottom 55%", scrub = true } = options || {};
 
   gsap.fromTo(
     words,

@@ -75,6 +75,7 @@ export function MenuOverlay({
   const backdropRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const linksScrollRef = useRef<HTMLDivElement>(null);
+  const isNavigatingAnchor = useRef(false);
 
   const [hoveredPreview, setHoveredPreview] = useState<PreviewKey>("default");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -236,7 +237,7 @@ export function MenuOverlay({
 
   // Modal vs Non-Modal Ergonomics: Pinned mode locks scroll and traps focus
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isClosing || isNavigatingAnchor.current) return;
 
     const isModal = isPinned || !isDesktop;
     let originalOverflow = "";
@@ -290,16 +291,18 @@ export function MenuOverlay({
       window.addEventListener("keydown", handleKeyDown);
 
       return () => {
-        document.body.style.overflow = originalOverflow;
-        if (
-          typeof window !== "undefined" &&
-          (window as unknown as { lenis?: { start: () => void } }).lenis
-        ) {
-          (window as unknown as { lenis?: { start: () => void } }).lenis?.start();
+        if (!isNavigatingAnchor.current) {
+          document.body.style.overflow = originalOverflow;
+          if (
+            typeof window !== "undefined" &&
+            (window as unknown as { lenis?: { start: () => void } }).lenis
+          ) {
+            (window as unknown as { lenis?: { start: () => void } }).lenis?.start();
+          }
+          triggerNode?.focus({ preventScroll: true });
         }
         window.removeEventListener("keydown", handleKeyDown);
         clearTimeout(timer);
-        triggerNode?.focus();
       };
     } else {
       // In hover mode: Escape still closes, and keyboard listeners return focus
@@ -315,27 +318,58 @@ export function MenuOverlay({
         window.removeEventListener("keydown", handleKeyDown);
       };
     }
-  }, [isOpen, isPinned, isDesktop, handleClose, triggerRef]);
+  }, [isOpen, isClosing, isPinned, isDesktop, handleClose, triggerRef]);
 
   if (!isOpen) return null;
 
   const handleLinkClick = (e: React.MouseEvent, item: MenuItem) => {
     if (item.isAnchor && pathname === "/") {
       e.preventDefault();
+      e.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+      isNavigatingAnchor.current = true;
       handleClose();
+
       const targetId = item.href.replace(/^\/?#/, "");
-      const el = document.getElementById(targetId);
-      if (el) {
-        if (
-          typeof window !== "undefined" &&
-          (window as unknown as { lenis?: { scrollTo: (t: HTMLElement, o?: object) => void } }).lenis
-        ) {
-          (window as unknown as { lenis?: { scrollTo: (t: HTMLElement, o?: object) => void } }).lenis?.scrollTo(
-            el,
-            { offset: -70 }
-          );
-        } else {
-          el.scrollIntoView({ behavior: "smooth" });
+      window.history.pushState(null, "", `#${targetId}`);
+
+      if (typeof window !== "undefined") {
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          const headerEl = document.querySelector("header");
+          const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 70;
+          const lenisInst = (window as unknown as {
+            lenis?: {
+              isStopped: boolean;
+              start: () => void;
+              resize: () => void;
+              scrollTo: (t: HTMLElement | number, o?: object) => void;
+            };
+          }).lenis;
+
+          if (lenisInst) {
+            if (lenisInst.isStopped) {
+              lenisInst.start();
+            }
+            lenisInst.resize();
+            lenisInst.scrollTo(targetEl, {
+              offset: -headerHeight,
+              force: true,
+              onComplete: () => {
+                isNavigatingAnchor.current = false;
+              },
+            });
+          } else {
+            const targetTop = Math.max(
+              0,
+              window.scrollY + targetEl.getBoundingClientRect().top - headerHeight
+            );
+            window.scrollTo({
+              top: targetTop,
+              behavior: "smooth",
+            });
+            isNavigatingAnchor.current = false;
+          }
         }
       }
     } else if (!item.isAnchor) {

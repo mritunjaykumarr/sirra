@@ -35,9 +35,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${cormorant.variable} ${archivo.variable}`}
     >
-      <body className="min-h-screen flex flex-col bg-cream text-ink font-sans antialiased">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col bg-cream text-ink font-sans antialiased">
         {/* Accessible skip link for keyboard and screen reader navigation */}
         <a
           href="#main-content"

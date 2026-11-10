@@ -1,6 +1,39 @@
 {
-  "mode": "panels",
+  "mode": "video",
   "image": null,
-  "video": null,
-  "reason": "No full-res hero-main (>=2000px) or hero video found: default 4-panel mode active"
+  "video": {
+    "src": "/video/hero.mp4",
+    "webm": "/video/hero.webm",
+    "mobile": "/video/hero-mobile.webm",
+    "mobileMp4": "/video/hero-mobile.mp4",
+    "mobileWebm": "/video/hero-mobile.webm",
+    "poster": "/video/hero-poster.jpg",
+    "hasPoster": true,
+    "sizes": {
+      "mp4": 14855745,
+      "webm": 13439875,
+      "mobileWebm": 13046804,
+      "mobileMp4": 20171330,
+      "poster": 151096
+    }
+  },
+  "slides": {
+    "wayfarer": {
+      "kv": null,
+      "video": null
+    },
+    "equinox": {
+      "kv": null,
+      "video": null
+    },
+    "silk-smoke": {
+      "kv": null,
+      "video": null
+    },
+    "heartthrob": {
+      "kv": null,
+      "video": null
+    }
+  },
+  "reason": "Hero video found in public/video/: video mode active by default"
 }

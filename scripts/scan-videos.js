@@ -2,7 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const VIDEO_KEYS = ["hero", "wayfarer", "equinox", "silk-smoke", "heartthrob"];
+const VIDEO_KEYS = ["hero", "hero-mobile", "wayfarer", "equinox", "silk-smoke", "heartthrob"];
 const VIDEO_EXTENSIONS = [".mp4", ".webm"];
 
 const projectRoot = fs.existsSync(path.join(process.cwd(), "public"))

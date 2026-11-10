@@ -309,7 +309,7 @@ export default function StyleguidePage() {
                 <strong>Snapshot Positioning:</strong> {COPY.snapshot.positioning}
               </p>
               <p>
-                <strong>Manifesto Closing:</strong> {COPY.manifesto.closingLines.headline}
+                <strong>Range Story Headline:</strong> {COPY.rangeStory.beat5.headline}
               </p>
               <p>
                 <strong>Brand Mantra:</strong> {COPY.mantra.statement}

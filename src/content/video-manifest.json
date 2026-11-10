@@ -1,7 +1,8 @@
 {
-  "hero": null,
+  "hero": "/video/hero.mp4",
   "wayfarer": null,
   "equinox": null,
   "silk-smoke": null,
-  "heartthrob": null
+  "heartthrob": null,
+  "hero-mobile": "/video/hero-mobile.mp4"
 }

@@ -1,5 +1,6 @@
 import { MARKETS } from "./markets";
 import { IMAGES, type ImageKey, type ImageData } from "./images";
+import { type CopyStatus } from "./copy";
 
 export type ProductSlug = "wayfarer" | "equinox" | "silk-smoke" | "heartthrob";
 export type ProductColor = "wayfarer" | "equinox" | "silkSmoke" | "heartthrob";
@@ -30,6 +31,8 @@ export interface Product {
   image: ImageKey;
   packShot: ImageData;
   links: ProductLinks;
+  status: CopyStatus;
+  source: string;
 }
 
 export const PRODUCTS: Product[] = [
@@ -59,6 +62,8 @@ export const PRODUCTS: Product[] = [
       flipkart: MARKETS.flipkart.url,
       meesho: MARKETS.meesho.url,
     },
+    status: "approved-brand-book",
+    source: "Brand Book (Persona Architecture & Persona Details)",
   },
   {
     slug: "equinox",
@@ -86,6 +91,8 @@ export const PRODUCTS: Product[] = [
       flipkart: MARKETS.flipkart.url,
       meesho: MARKETS.meesho.url,
     },
+    status: "approved-brand-book",
+    source: "Brand Book (Persona Architecture & Persona Details)",
   },
   {
     slug: "silk-smoke",
@@ -113,6 +120,8 @@ export const PRODUCTS: Product[] = [
       flipkart: MARKETS.flipkart.url,
       meesho: MARKETS.meesho.url,
     },
+    status: "approved-brand-book",
+    source: "Brand Book (Persona Architecture & Persona Details)",
   },
   {
     slug: "heartthrob",
@@ -140,6 +149,8 @@ export const PRODUCTS: Product[] = [
       flipkart: MARKETS.flipkart.url,
       meesho: MARKETS.meesho.url,
     },
+    status: "approved-brand-book",
+    source: "Brand Book (Persona Architecture & Persona Details)",
   },
 ];
 

@@ -8,7 +8,8 @@ export { PRODUCTS, getProduct, getAdjacentProducts, getProductJsonLd } from "./p
 export type { Product, ProductSlug, ProductColor, ProductLinks, ProductJsonLd } from "./products";
 
 export { COPY } from "./copy";
+export type { CopyStatus, CopyItem } from "./copy";
 
-export { HERO_MODE, HERO_DATA } from "./hero";
-export type { HeroMode, HeroManifestData } from "./hero";
+export { HERO_MODE, HERO_DATA, HERO_CAPTION, HERO_YT_CONFIG } from "./hero";
+export type { HeroMode, HeroManifestData, HeroCaption, SlideOverride, HeroYouTubeConfig } from "./hero";
 
