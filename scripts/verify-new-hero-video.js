@@ -69,21 +69,67 @@ async function run() {
     const badgeCount = await page.$$eval("#hero-youtube-dev-badge", (els) => els.length);
     console.log(`YouTube preview badge present: ${badgeCount > 0} (Expected: false)`);
 
-    // Check video state
-    const videoData = await page.evaluate(() => {
+    // Check 1: Initial Desktop Load
+    const state1 = await page.evaluate(() => {
       const vid = document.querySelector("video");
-      const poster = document.querySelector("img[alt='SIRRA Fine Fragrance']");
       return {
         hasVideo: Boolean(vid),
         paused: vid ? vid.paused : null,
         currentTime: vid ? vid.currentTime : null,
         src: vid ? vid.currentSrc : null,
         readyState: vid ? vid.readyState : null,
-        posterOpacity: poster ? window.getComputedStyle(poster).opacity : null,
-        videoOpacity: vid ? window.getComputedStyle(vid).opacity : null,
       };
     });
-    console.log("Hero Video Playback State:", videoData);
+    console.log("[Test 1: Initial Load]", state1);
+
+    // Check 2: First Page Refresh (Reload)
+    console.log("Reloading page (simulating user refresh)...");
+    await page.reload({ waitUntil: "networkidle2" });
+    await new Promise((r) => setTimeout(r, 2000));
+    const state2 = await page.evaluate(() => {
+      const vid = document.querySelector("video");
+      return {
+        hasVideo: Boolean(vid),
+        paused: vid ? vid.paused : null,
+        currentTime: vid ? vid.currentTime : null,
+        src: vid ? vid.currentSrc : null,
+        readyState: vid ? vid.readyState : null,
+      };
+    });
+    console.log("[Test 2: After 1st Refresh]", state2);
+
+    // Check 3: Second Page Refresh (Cached reload)
+    console.log("Reloading page second time (cached reload)...");
+    await page.reload({ waitUntil: "networkidle2" });
+    await new Promise((r) => setTimeout(r, 2000));
+    const state3 = await page.evaluate(() => {
+      const vid = document.querySelector("video");
+      return {
+        hasVideo: Boolean(vid),
+        paused: vid ? vid.paused : null,
+        currentTime: vid ? vid.currentTime : null,
+        src: vid ? vid.currentSrc : null,
+        readyState: vid ? vid.readyState : null,
+      };
+    });
+    console.log("[Test 3: After 2nd Refresh]", state3);
+
+    // Check 4: Mobile Viewport (375x667)
+    console.log("Testing mobile viewport 375x667...");
+    await page.setViewport({ width: 375, height: 667, isMobile: true, hasTouch: true });
+    await page.reload({ waitUntil: "networkidle2" });
+    await new Promise((r) => setTimeout(r, 2000));
+    const stateMobile = await page.evaluate(() => {
+      const vid = document.querySelector("video");
+      return {
+        hasVideo: Boolean(vid),
+        paused: vid ? vid.paused : null,
+        currentTime: vid ? vid.currentTime : null,
+        src: vid ? vid.currentSrc : null,
+        readyState: vid ? vid.readyState : null,
+      };
+    });
+    console.log("[Test 4: Mobile Viewport]", stateMobile);
 
     const shotPath = path.join(BRAIN_DIR, "verify-new-hero-video-playing.png");
     await page.screenshot({ path: shotPath });
