@@ -55,36 +55,6 @@ export function HeroFragranceSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const videoTextBlockRef = useRef<HTMLDivElement>(null);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [showPosterOnly, setShowPosterOnly] = useState(false);
-  const [videoSources, setVideoSources] = useState({
-    mp4: HERO_DATA.video?.src || "/video/videoplayback.mp4",
-    webm: HERO_DATA.video?.webm || "/video/hero.webm",
-  });
-
-  useEffect(() => {
-    const frameId = requestAnimationFrame(() => {
-      const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const nav = typeof navigator !== "undefined" ? (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }) : null;
-      const isSaveData = nav?.connection?.saveData === true;
-      const eff = nav?.connection?.effectiveType;
-      const isSlow = eff === "slow-2g" || eff === "2g" || eff === "3g";
-      if (mediaQuery || isSaveData || isSlow) {
-        setShowPosterOnly(true);
-      }
-
-      const isMobile = window.matchMedia("(max-width: 767px), (orientation: portrait)").matches;
-      const v = HERO_DATA.video;
-      if (isMobile && v?.mobile) {
-        setVideoSources({
-          mp4: v.mobile,
-          webm: v.mobileWebm || v.mobile,
-        });
-      }
-    });
-
-    return () => cancelAnimationFrame(frameId);
-  }, []);
 
   const heroVideo = HERO_DATA.video?.src;
   const taglineWords = COPY.hero.tagline.replace(/^“|”$/g, "").split(" ");
@@ -159,114 +129,60 @@ export function HeroFragranceSection() {
     };
   }, []);
 
-  // Video Hero: Listen for runtime media query & resize changes
+  // Video Hero: Robust Autoplay on initial load and every reload / refresh
   useEffect(() => {
     if (!isVideoMode) return;
+    const vid = videoRef.current;
+    if (!vid) return;
 
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const handleMotionChange = (e: MediaQueryListEvent) => {
-      setShowPosterOnly(e.matches);
-    };
-    mediaQuery.addEventListener("change", handleMotionChange);
+    // Ensure DOM properties are set
+    vid.muted = true;
+    vid.defaultMuted = true;
+    vid.playsInline = true;
 
-    const mobileQuery = window.matchMedia("(max-width: 767px), (orientation: portrait)");
-    const handleResize = () => {
-      const isMobile = mobileQuery.matches;
-      const v = HERO_DATA.video;
-      if (isMobile && v?.mobile) {
-        setVideoSources({
-          mp4: v.mobile,
-          webm: v.mobileWebm || v.mobile,
-        });
-      } else if (v?.src) {
-        setVideoSources({
-          mp4: v.src,
-          webm: v.webm || v.src,
-        });
+    const playVideo = () => {
+      if (vid.paused) {
+        const p = vid.play();
+        if (p !== undefined) {
+          p.catch(() => {});
+        }
       }
     };
-    mobileQuery.addEventListener("change", handleResize);
+
+    // Play immediately on mount (works for cached videos and fresh loads)
+    playVideo();
+
+    // Attach listeners for when data arrives
+    vid.addEventListener("loadedmetadata", playVideo);
+    vid.addEventListener("loadeddata", playVideo);
+    vid.addEventListener("canplay", playVideo);
+    vid.addEventListener("canplaythrough", playVideo);
+
+    // If browser policy holds playback on reload until user interaction, play on first event
+    const handleInteraction = () => {
+      playVideo();
+      window.removeEventListener("scroll", handleInteraction);
+      window.removeEventListener("touchstart", handleInteraction);
+      window.removeEventListener("click", handleInteraction);
+      window.removeEventListener("pointerdown", handleInteraction);
+    };
+
+    window.addEventListener("scroll", handleInteraction, { once: true, passive: true });
+    window.addEventListener("touchstart", handleInteraction, { once: true, passive: true });
+    window.addEventListener("click", handleInteraction, { once: true, passive: true });
+    window.addEventListener("pointerdown", handleInteraction, { once: true, passive: true });
 
     return () => {
-      mediaQuery.removeEventListener("change", handleMotionChange);
-      mobileQuery.removeEventListener("change", handleResize);
+      vid.removeEventListener("loadedmetadata", playVideo);
+      vid.removeEventListener("loadeddata", playVideo);
+      vid.removeEventListener("canplay", playVideo);
+      vid.removeEventListener("canplaythrough", playVideo);
+      window.removeEventListener("scroll", handleInteraction);
+      window.removeEventListener("touchstart", handleInteraction);
+      window.removeEventListener("click", handleInteraction);
+      window.removeEventListener("pointerdown", handleInteraction);
     };
   }, [isVideoMode]);
-
-  // Video Hero: Robust Autoplay with Retries
-  const attemptPlay = useCallback(() => {
-    const vid = videoRef.current;
-    if (!vid || showPosterOnly) return;
-    if (isHeroInView && isTabVisible) {
-      const playPromise = vid.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsVideoPlaying(true);
-          })
-          .catch(() => {
-            // Autoplay rejected: will retry on user scroll/touch/visibility
-          });
-      }
-    } else {
-      vid.pause();
-    }
-  }, [isHeroInView, isTabVisible, showPosterOnly]);
-
-  // Video Hero: Play / Pause Sync with Tab Visibility & Intersection Observer
-  useEffect(() => {
-    if (!isVideoMode || showPosterOnly || !videoRef.current) return;
-    attemptPlay();
-  }, [isVideoMode, isHeroInView, isTabVisible, showPosterOnly, attemptPlay]);
-
-  // Video Hero: Retry on first user scroll, touch, or pointerdown
-  useEffect(() => {
-    if (!isVideoMode || showPosterOnly) return;
-
-    const handleFirstInteraction = () => {
-      attemptPlay();
-      window.removeEventListener("scroll", handleFirstInteraction);
-      window.removeEventListener("touchstart", handleFirstInteraction);
-      window.removeEventListener("pointerdown", handleFirstInteraction);
-    };
-
-    window.addEventListener("scroll", handleFirstInteraction, { passive: true });
-    window.addEventListener("touchstart", handleFirstInteraction, { passive: true });
-    window.addEventListener("pointerdown", handleFirstInteraction, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleFirstInteraction);
-      window.removeEventListener("touchstart", handleFirstInteraction);
-      window.removeEventListener("pointerdown", handleFirstInteraction);
-    };
-  }, [isVideoMode, showPosterOnly, attemptPlay]);
-
-  // Video Hero: Track playing state from DOM events
-  useEffect(() => {
-    if (!isVideoMode || !videoRef.current) return;
-    const vid = videoRef.current;
-
-    const markPlaying = () => {
-      setIsVideoPlaying(true);
-    };
-
-    vid.addEventListener("playing", markPlaying);
-    vid.addEventListener("play", markPlaying);
-    vid.addEventListener("canplay", markPlaying);
-    vid.addEventListener("loadeddata", markPlaying);
-
-    return () => {
-      vid.removeEventListener("playing", markPlaying);
-      vid.removeEventListener("play", markPlaying);
-      vid.removeEventListener("canplay", markPlaying);
-      vid.removeEventListener("loadeddata", markPlaying);
-    };
-  }, [isVideoMode]);
-
-  const handleVideoCanPlay = () => {
-    setIsVideoPlaying(true);
-    attemptPlay();
-  };
 
   // 2. Slide Transition Function
   const goToSlide = useCallback((newIndex: number) => {
@@ -759,55 +675,27 @@ export function HeroFragranceSection() {
         /* MODE: CINEMATIC FULL-SCREEN VIDEO HERO                         */
         /* ============================================================== */
         <div className="absolute inset-0 w-full h-full overflow-hidden">
-          {/* Scalable Video & Poster Container for Parallax */}
+          {/* Scalable Video Container for Parallax */}
           <div ref={videoContainerRef} className="absolute inset-0 w-full h-full origin-center">
-            {/* LCP Poster Placeholder (Instant render, high-res 2400px of sunset mosque) */}
-            <Image
-              src={HERO_DATA.video?.poster || "/video/hero-poster.jpg"}
-              alt="SIRRA Fine Fragrance"
-              fill
-              priority
-              quality={85}
-              sizes="100vw"
-              className={`object-cover object-center transition-opacity duration-1000 ${
-                isVideoPlaying && !showPosterOnly ? "opacity-0" : "opacity-100"
-              }`}
-            />
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              loop
+              preload="auto"
+              poster="/video/hero-poster.jpg"
+              className="absolute inset-0 w-full h-full object-cover object-center"
+            >
+              {/* Phone / Mobile portrait: hero-mobile.webm */}
+              <source src="/video/hero-mobile.webm" type="video/webm" media="(max-width: 768px), (orientation: portrait)" />
+              <source src="/video/hero-mobile.mp4" type="video/mp4" media="(max-width: 768px), (orientation: portrait)" />
 
-            {/* HTML5 Video Layer */}
-            {!showPosterOnly && (
-              <video
-                ref={(el) => {
-                  videoRef.current = el;
-                  if (el) {
-                    el.muted = true;
-                    el.defaultMuted = true;
-                    el.playsInline = true;
-                    const p = el.play();
-                    if (p !== undefined) {
-                      p.catch(() => {});
-                    }
-                  }
-                }}
-                muted
-                autoPlay
-                loop
-                playsInline
-                preload="auto"
-                onPlay={() => setIsVideoPlaying(true)}
-                onPlaying={() => setIsVideoPlaying(true)}
-                onCanPlay={handleVideoCanPlay}
-                onLoadedData={handleVideoCanPlay}
-                className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 ${
-                  isVideoPlaying ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                <source src={videoSources.mp4} type="video/mp4" />
-                <source src="/video/videoplayback.mp4" type="video/mp4" />
-                <source src="/video/hero.mp4" type="video/mp4" />
-                <source src={videoSources.webm} type="video/webm" />
-              </video>
-            )}
+              {/* Desktop: hero.mp4 */}
+              <source src="/video/hero.mp4" type="video/mp4" />
+              <source src="/video/hero.webm" type="video/webm" />
+              <source src="/video/videoplayback.mp4" type="video/mp4" />
+            </video>
           </div>
 
           {/* Overlays: Top Gradient, Bottom 45% Ink, Radial Vignette (max 30%), Film Grain */}
