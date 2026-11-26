@@ -4,7 +4,7 @@ import React, { useRef } from "react";
 import Wordmark from "./ui/Wordmark";
 import OutboundLink from "./ui/OutboundLink";
 import MarketLogo from "./ui/MarketLogo";
-import { MARKETS, MarketKey } from "@/content";
+import { MARKETS, MarketKey, COPY } from "@/content";
 import { useGsap, fadeUpStagger } from "@/lib/motion";
 
 export function Footer() {
@@ -90,7 +90,7 @@ export function Footer() {
           <div className="flex flex-col items-center gap-3">
             <Wordmark size="lg" className="text-cream" />
             <p className="font-display italic text-rust text-xl md:text-2xl">
-              Your Sirra.
+              {COPY.closing.signoff}
             </p>
           </div>
 

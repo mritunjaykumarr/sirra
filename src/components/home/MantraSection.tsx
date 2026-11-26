@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import Image from "next/image";
 import Tag from "@/components/ui/Tag";
+import Button from "@/components/ui/Button";
 import { COPY, IMAGES } from "@/content";
 import { useGsap, parallax, wordReveal, maskReveal } from "@/lib/motion";
 
@@ -39,6 +40,7 @@ export function MantraSection() {
 
   return (
     <section
+      id="mantra"
       ref={sectionRef}
       className="w-full bg-cream py-18 md:py-30 px-5 md:px-10 overflow-hidden"
     >
@@ -67,14 +69,14 @@ export function MantraSection() {
         {/* Right Half: Solid Gold (#E0A52B) Background */}
         <div className="md:col-span-6 bg-gold text-ink p-8 sm:p-12 lg:p-16 flex flex-col justify-center">
           {/* Tag "THE BRAND MANTRA" in ink */}
-          <div className="mb-8">
+          <div className="mb-6">
             <Tag color="ink">{COPY.mantra.tag}</Tag>
           </div>
 
           {/* Statement in Archivo 800 uppercase with wordReveal */}
           <h2
             ref={statementRef}
-            className="font-sans font-extrabold text-2xl sm:text-3xl lg:text-4xl text-ink uppercase tracking-tight leading-[1.12] mb-6 select-none"
+            className="font-sans font-extrabold text-2xl sm:text-3xl lg:text-4xl text-ink uppercase tracking-tight leading-[1.15] mb-6 select-none"
             aria-label={COPY.mantra.statement}
           >
             {statementWords.map((word, idx) => (
@@ -88,17 +90,24 @@ export function MantraSection() {
           </h2>
 
           {/* Ink Divider Rule */}
-          <div className="w-20 md:w-28 h-[1px] bg-ink my-4 md:my-6" />
+          <div className="w-20 md:w-28 h-[1px] bg-ink my-4 md:my-5" />
 
           {/* Cormorant Italic Lines */}
-          <p className="font-display italic text-2xl sm:text-3xl lg:text-4xl text-ink leading-snug mb-6">
+          <p className="font-display italic text-2xl sm:text-3xl lg:text-4xl text-ink leading-snug mb-8">
             {COPY.mantra.italicLines}
           </p>
 
-          {/* "YOUR SIRRA." in Heartthrob Colour */}
+          {/* Action button: [ Find Your Sirra ] */}
+          <div className="mb-6">
+            <Button variant="dark" href="/#scents">
+              {COPY.mantra.action}
+            </Button>
+          </div>
+
+          {/* Sign-off: "The best version of you. Your Sirra." */}
           <div>
-            <span className="font-sans font-extrabold text-heartthrob uppercase tracking-[0.2em] text-lg sm:text-xl lg:text-2xl">
-              {COPY.mantra.baseline}
+            <span className="font-sans font-bold text-rust uppercase tracking-[0.2em] text-xs sm:text-sm">
+              {COPY.mantra.signoff}
             </span>
           </div>
         </div>

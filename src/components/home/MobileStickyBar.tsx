@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { COPY } from "@/content";
 
 export function MobileStickyBar() {
   const [isVisible, setIsVisible] = useState(false);
@@ -51,7 +52,7 @@ export function MobileStickyBar() {
           href="#scents"
           className="flex-1 py-3 px-4 bg-cream text-ink text-xs font-sans font-semibold uppercase tracking-wider text-center hover:bg-gold transition-colors"
         >
-          Discover the collection
+          {COPY.ui.discoverCollection}
         </a>
         <a
           href="#availability"

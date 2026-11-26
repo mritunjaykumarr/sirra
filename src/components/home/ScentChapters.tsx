@@ -2,14 +2,27 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Tag from "@/components/ui/Tag";
-import Button from "@/components/ui/Button";
 import OutboundLink from "@/components/ui/OutboundLink";
 import MarketLogo from "@/components/ui/MarketLogo";
 import VideoSlot from "@/components/ui/VideoSlot";
 import { COPY, IMAGES, PRODUCTS, ProductColor, MarketKey } from "@/content";
 import videoManifest from "@/content/video-manifest.json";
-import { useGsap, fadeUpStagger, isReducedMotion } from "@/lib/motion";
+import {
+  useGsap,
+  fadeUpStagger,
+  maskReveal,
+  parallax,
+  characterReveal,
+  strokeDraw,
+  attachPointerTilt,
+  attachMagnetic,
+  isReducedMotion,
+  prefersFinePointer,
+  refreshScrollOnReady,
+  type InteractiveController,
+} from "@/lib/motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -17,10 +30,16 @@ export interface ScentChaptersProps {
   availableLogos?: Record<MarketKey, boolean>;
 }
 
+interface ChapterRuntimeControllers {
+  floatTweens: gsap.core.Tween[];
+  tiltController: InteractiveController | null;
+  magneticController: InteractiveController | null;
+}
+
 export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLElement>(null);
-  const [activeSlug, setActiveSlug] = useState<string>("wayfarer");
+  const [activeSlug, setActiveSlug] = useState<string>(PRODUCTS[0].slug);
 
   const personaColorHex: Record<ProductColor, string> = {
     wayfarer: "#1E3A6B",
@@ -43,10 +62,24 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
     heartthrob: "bg-heartthrob",
   };
 
+  const activeIndex = Math.max(
+    0,
+    PRODUCTS.findIndex((p) => p.slug === activeSlug)
+  );
+
+  // Refresh ScrollTrigger after fonts and assets load
+  useEffect(() => {
+    return refreshScrollOnReady();
+  }, []);
+
   // ScrollSpy fallback for mobile, tablet, or reduced motion
   useEffect(() => {
     const handleScroll = () => {
-      if (typeof window !== "undefined" && window.innerWidth >= 1024 && !isReducedMotion()) {
+      if (
+        typeof window !== "undefined" &&
+        window.innerWidth >= 1024 &&
+        !isReducedMotion()
+      ) {
         return;
       }
       const scrollPos = window.scrollY + window.innerHeight * 0.45;
@@ -69,7 +102,11 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
   }, []);
 
   useGsap(() => {
-    // Scents rail visibility: visible only while #scents is on screen (fade in at 30% viewport, fade out when leaving)
+    const controllersBySlug = new Map<string, ChapterRuntimeControllers>();
+    const finePointerDesktop = prefersFinePointer();
+    const reduced = isReducedMotion();
+
+    // Scents rail visibility: visible only while #scents is on screen
     const railEl = railRef.current;
     if (railEl && containerRef.current) {
       ScrollTrigger.create({
@@ -77,7 +114,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
         start: "top 30%",
         end: "bottom 30%",
         onToggle: (self) => {
-          if (isReducedMotion()) {
+          if (reduced) {
             gsap.set(railEl, {
               opacity: self.isActive ? 1 : 0,
               pointerEvents: self.isActive ? "auto" : "none",
@@ -96,7 +133,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
 
     // Intro header reveal
     const introEl = containerRef.current?.querySelector(".scent-intro-header");
-    if (introEl && !isReducedMotion()) {
+    if (introEl && !reduced) {
       fadeUpStagger(Array.from(introEl.children), {
         trigger: introEl,
         start: "top 80%",
@@ -104,47 +141,258 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
       });
     }
 
-    // Persona rule reveal
-    PRODUCTS.forEach((p) => {
+    // Per-chapter reveals (responsive via matchMedia + reduced motion fallbacks)
+    const mm = gsap.matchMedia();
+
+    // Common reveals & reduced-motion state
+    PRODUCTS.forEach((p, i) => {
       const chapterEl = document.getElementById(p.slug);
       if (!chapterEl) return;
-      const rule = chapterEl.querySelector(".chapter-rule");
-      if (rule && !isReducedMotion()) {
+
+      const wmInner = chapterEl.querySelector<HTMLElement>(".chapter-watermark-text");
+      const wmOuter = chapterEl.querySelector<HTMLElement>(".chapter-watermark");
+      const wmExit = chapterEl.querySelector<HTMLElement>(".chapter-watermark-exit");
+      const rule = chapterEl.querySelector<HTMLElement>(".chapter-rule");
+      const quoteRule = chapterEl.querySelector<HTMLElement>(".chapter-quote-rule");
+      const quoteMark = chapterEl.querySelector<HTMLElement>(".chapter-quote-mark");
+      const quoteContainer = chapterEl.querySelector<HTMLElement>("[data-chapter-quote]");
+      const quoteWords = chapterEl.querySelectorAll<HTMLElement>(".reveal-word");
+      const tagEnter = chapterEl.querySelector<HTMLElement>(".chapter-tag-enter");
+      const roleInner = chapterEl.querySelector<HTMLElement>(".chapter-role-inner");
+      const nameChars = chapterEl.querySelectorAll<HTMLElement>(".chapter-char");
+      const detailItems = chapterEl.querySelectorAll<HTMLElement>(".chapter-detail-item");
+      const photoClip = chapterEl.querySelector<HTMLElement>(".persona-photo-clip");
+      const photoScale = chapterEl.querySelector<HTMLElement>(".persona-photo-scale");
+      const frameStroke = chapterEl.querySelector<SVGGeometryElement>(".persona-frame-stroke");
+      const trailLineDesktop = chapterEl.querySelector<HTMLElement>(".scent-trail-line-desktop");
+      const trailItemsDesktop = chapterEl.querySelectorAll<HTMLElement>(".scent-trail-item-desktop");
+      const trailLineMobile = chapterEl.querySelector<HTMLElement>(".scent-trail-line-mobile");
+      const trailItemsMobile = chapterEl.querySelectorAll<HTMLElement>(".scent-trail-item-mobile");
+      const bottleFloatEl = chapterEl.querySelector<HTMLElement>("[data-bottle-float]");
+      const bottleShadowEl = chapterEl.querySelector<HTMLElement>("[data-bottle-shadow]");
+      const orbitEl = chapterEl.querySelector<HTMLElement>("[data-orbit-ring]");
+      const orbitDotEl = chapterEl.querySelector<SVGCircleElement>("[data-orbit-dot]");
+      const plateTiltEl = chapterEl.querySelector<HTMLElement>("[data-plate-tilt]");
+      const magneticEl = chapterEl.querySelector<HTMLElement>(".chapter-cta-magnetic");
+      const packPlateScroll = chapterEl.querySelector<HTMLElement>(".pack-plate-scroll");
+      const photoScroll = chapterEl.querySelector<HTMLElement>(".persona-photo-scroll");
+      const photoParallax = chapterEl.querySelector<HTMLElement>(".persona-photo-parallax");
+      const numeralEl = chapterEl.querySelector<HTMLElement>(".chapter-numeral");
+      const atmosphereCircle = chapterEl.querySelector<HTMLElement>(".chapter-atmosphere-circle");
+
+      if (reduced) {
+        if (wmOuter) gsap.set(wmOuter, { opacity: 1 });
+        if (wmExit) gsap.set(wmExit, { opacity: 1 });
+        if (wmInner) gsap.set(wmInner, { opacity: 0.06, xPercent: 0 });
+        if (frameStroke) gsap.set(frameStroke, { strokeDashoffset: 0 });
+        if (photoClip) gsap.set(photoClip, { clipPath: "inset(0% 0% 0% 0%)" });
+        if (photoScale) gsap.set(photoScale, { scale: 1 });
+        if (quoteWords.length > 0) gsap.set(quoteWords, { opacity: 1 });
+        if (quoteMark) gsap.set(quoteMark, { clipPath: "inset(0% 0% 0% 0%)", opacity: 0.9 });
+        if (quoteRule) gsap.set(quoteRule, { scaleY: 1 });
+        if (rule) gsap.set(rule, { scaleX: 1 });
+        if (roleInner) gsap.set(roleInner, { yPercent: 0, opacity: 1 });
+        if (nameChars.length > 0) gsap.set(nameChars, { yPercent: 0, opacity: 1 });
+        if (detailItems.length > 0) gsap.set(detailItems, { y: 0, opacity: 1 });
+        if (trailLineDesktop) gsap.set(trailLineDesktop, { scaleX: 1 });
+        if (trailItemsDesktop.length > 0) gsap.set(trailItemsDesktop, { opacity: 1, y: 0, scale: 1 });
+        if (trailLineMobile) gsap.set(trailLineMobile, { scaleY: 1 });
+        if (trailItemsMobile.length > 0) gsap.set(trailItemsMobile, { opacity: 1, x: 0 });
+        if (atmosphereCircle) gsap.set(atmosphereCircle, { scale: 1 });
+        return;
+      }
+
+      // 1px Persona color horizontal rule
+      if (rule) {
         gsap.fromTo(
           rule,
           { scaleX: 0, transformOrigin: "left center" },
           {
             scaleX: 1,
-            duration: 0.9,
+            duration: 0.85,
             ease: "power3.out",
             scrollTrigger: {
-              trigger: rule,
-              start: "top 85%",
+              trigger: chapterEl,
+              start: "top 80%",
+              once: true,
             },
           }
         );
       }
-    });
 
-    // Stacking Curtain Motion (Desktop >= 1024px & reduced motion false)
-    if (isReducedMotion() || typeof window === "undefined" || window.innerWidth < 1024) {
-      return;
-    }
+      // Tag slide & role masked rise
+      if (tagEnter) {
+        gsap.fromTo(
+          tagEnter,
+          { x: -18, opacity: 0 },
+          {
+            x: 0,
+            opacity: 1,
+            duration: 0.75,
+            ease: "power3.out",
+            scrollTrigger: { trigger: chapterEl, start: "top 80%", once: true },
+          }
+        );
+      }
 
-    const mm = gsap.matchMedia();
-    mm.add("(min-width: 1024px)", () => {
-      PRODUCTS.forEach((p, i) => {
-        const chapterEl = document.getElementById(p.slug);
-        if (!chapterEl) return;
+      if (roleInner) {
+        gsap.fromTo(
+          roleInner,
+          { yPercent: 105, opacity: 0 },
+          {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.75,
+            delay: 0.08,
+            ease: "power3.out",
+            scrollTrigger: { trigger: chapterEl, start: "top 80%", once: true },
+          }
+        );
+      }
 
-        // Giant watermark drift across seam
-        const watermark = chapterEl.querySelector(".chapter-watermark-text");
-        if (watermark) {
+      // Quote opening mark + vertical quote rule draw-in
+      if (quoteMark) {
+        gsap.fromTo(
+          quoteMark,
+          { clipPath: "inset(0% 100% 0% 0%)", opacity: 0 },
+          {
+            clipPath: "inset(0% 0% 0% 0%)",
+            opacity: 0.9,
+            duration: 0.85,
+            delay: 0.15,
+            ease: "power3.out",
+            scrollTrigger: { trigger: chapterEl, start: "top 80%", once: true },
+          }
+        );
+      }
+
+      if (quoteRule) {
+        gsap.fromTo(
+          quoteRule,
+          { scaleY: 0 },
+          {
+            scaleY: 1,
+            duration: 0.9,
+            delay: 0.15,
+            ease: "power3.out",
+            scrollTrigger: { trigger: chapterEl, start: "top 80%", once: true },
+          }
+        );
+      }
+
+      // Paragraph and Reach For It sequential fadeUp (0.1s stagger)
+      if (detailItems.length > 0) {
+        fadeUpStagger(detailItems, {
+          trigger: chapterEl,
+          start: "top 78%",
+          stagger: 0.1,
+          duration: 0.75,
+        });
+      }
+
+      // Persona photograph reveal (clipPath 100% -> 0%, scale 1.12 -> 1, offset 1px SVG frame draw 1s)
+      if (photoClip) {
+        maskReveal(photoClip, {
+          trigger: photoClip,
+          start: "top 85%",
+          duration: 1.1,
+        });
+      }
+
+      if (photoScale) {
+        gsap.fromTo(
+          photoScale,
+          { scale: 1.12 },
+          {
+            scale: 1,
+            duration: 1.1,
+            ease: "power3.out",
+            scrollTrigger: { trigger: photoClip || chapterEl, start: "top 85%", once: true },
+          }
+        );
+      }
+
+      if (frameStroke) {
+        strokeDraw(frameStroke, {
+          trigger: photoClip || chapterEl,
+          start: "top 85%",
+          duration: 1.0,
+          fromOffset: 100,
+        });
+      }
+
+      // Desktop-only (>= 1024px) stacking choreography, scrubbed watermark, parallax, trail & fine-pointer micro-motion
+      mm.add("(min-width: 1024px)", () => {
+        const floatTweens: gsap.core.Tween[] = [];
+
+        // Letter reveal for scent name (0.04s stagger from masked line boxes)
+        if (nameChars.length > 0) {
+          characterReveal(nameChars, {
+            trigger: chapterEl,
+            start: "top 78%",
+            stagger: 0.04,
+            duration: 0.7,
+          });
+        }
+
+        // Scrubbed quote word reveal (15% -> 100% over short range so full opacity is reached before held sticky state)
+        if (quoteWords.length > 0 && quoteContainer) {
           gsap.fromTo(
-            watermark,
-            { xPercent: 12 },
+            quoteWords,
+            { opacity: 0.15 },
             {
-              xPercent: -12,
+              opacity: 1,
+              stagger: 0.04,
+              ease: "none",
+              scrollTrigger: {
+                trigger: chapterEl,
+                start: "top 85%",
+                end: "top 25%",
+                scrub: true,
+              },
+            }
+          );
+        }
+
+        // Horizontal Scent Trail line + 0.12s staggered notes
+        if (trailLineDesktop) {
+          const trailTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: chapterEl,
+              start: "top 72%",
+              once: true,
+            },
+          });
+          trailTl.fromTo(
+            trailLineDesktop,
+            { scaleX: 0 },
+            { scaleX: 1, duration: 0.72, ease: "power2.out" },
+            0
+          );
+          if (trailItemsDesktop.length > 0) {
+            trailTl.fromTo(
+              trailItemsDesktop,
+              { opacity: 0, y: 8, scale: 0.92 },
+              {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                duration: 0.45,
+                stagger: 0.12,
+                ease: "power3.out",
+              },
+              0.08
+            );
+          }
+        }
+
+        // Flat large circle (5% opacity) scaling 0.9 -> 1.1 on scroll
+        if (atmosphereCircle) {
+          gsap.fromTo(
+            atmosphereCircle,
+            { scale: 0.9 },
+            {
+              scale: 1.1,
               ease: "none",
               scrollTrigger: {
                 trigger: chapterEl,
@@ -156,72 +404,396 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
           );
         }
 
-        // Curtain transitions between chapter i and incoming chapter i + 1
-        if (i < PRODUCTS.length - 1) {
-          const nextProduct = PRODUCTS[i + 1];
-          const nextChapterEl = document.getElementById(nextProduct.slug);
-          if (!nextChapterEl) return;
+        // Giant numeral parallax (0.05)
+        if (numeralEl) {
+          parallax(numeralEl, 0.05, {
+            trigger: chapterEl,
+            start: "top bottom",
+            end: "bottom top",
+          });
+        }
 
-          const currentContent = chapterEl.querySelector(".chapter-content");
-          const currentOverlay = chapterEl.querySelector(".chapter-curtain-overlay");
-
-          // Scale down (1 -> 0.94), dim (1 -> 0.4), and overlay darkens (0 -> 30%)
-          if (currentContent && currentOverlay) {
-            gsap.to(currentContent, {
-              scale: 0.94,
-              opacity: 0.4,
-              ease: "none",
-              scrollTrigger: {
-                trigger: nextChapterEl,
-                start: "top bottom",
-                end: "top top",
-                scrub: true,
-              },
-            });
-
-            gsap.to(currentOverlay, {
-              opacity: 0.3,
-              ease: "none",
-              scrollTrigger: {
-                trigger: nextChapterEl,
-                start: "top bottom",
-                end: "top top",
-                scrub: true,
-              },
-            });
-          }
-
-          // Incoming chapter clip-path inset(8%) to inset(0%) and translate 60px to 0
+        // Scroll-linked plate scale (0.94 -> 1) and photo opposite direction (up to 24px) on enter
+        if (packPlateScroll) {
           gsap.fromTo(
-            nextChapterEl,
+            packPlateScroll,
+            { scale: 0.94 },
             {
-              clipPath: "inset(8% 0% 0% 0%)",
-              y: 60,
-            },
-            {
-              clipPath: "inset(0% 0% 0% 0%)",
-              y: 0,
+              scale: 1,
               ease: "none",
               scrollTrigger: {
-                trigger: nextChapterEl,
+                trigger: chapterEl,
                 start: "top bottom",
                 end: "top top",
                 scrub: true,
-                onUpdate: (self) => {
-                  if (self.progress >= 0.5) {
-                    setActiveSlug(nextProduct.slug);
-                  } else {
-                    setActiveSlug(p.slug);
-                  }
-                },
               },
             }
           );
         }
+
+        if (photoScroll) {
+          gsap.fromTo(
+            photoScroll,
+            { y: -24 },
+            {
+              y: 0,
+              ease: "none",
+              scrollTrigger: {
+                trigger: chapterEl,
+                start: "top bottom",
+                end: "top top",
+                scrub: true,
+              },
+            }
+          );
+        }
+
+        // Persona photograph inner scrubbed parallax (0.06)
+        if (photoParallax && photoClip) {
+          parallax(photoParallax, 0.06, {
+            trigger: chapterEl,
+            start: "top bottom",
+            end: "bottom top",
+          });
+        }
+
+        // Quiet watermark: fades in 0 -> 1 on outer wrapper, peaks at 10% (0.10) middle from 0.06, fades to 0 on exit, ~25% drift
+        if (wmOuter) {
+          gsap.fromTo(
+            wmOuter,
+            { opacity: 0 },
+            {
+              opacity: 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: chapterEl,
+                start: "top bottom",
+                end: "top 15%",
+                scrub: true,
+              },
+            }
+          );
+        }
+
+        if (wmInner) {
+          gsap.fromTo(
+            wmInner,
+            { xPercent: 12.5, opacity: 0.06 },
+            {
+              xPercent: 0,
+              opacity: 0.1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: chapterEl,
+                start: "top bottom",
+                end: "top top",
+                scrub: true,
+              },
+            }
+          );
+        }
+
+        // Will-change active chapter scoping + Curtain transitions
+        const currentContent = chapterEl.querySelector<HTMLElement>(".chapter-content");
+        const currentOverlay = chapterEl.querySelector<HTMLElement>(".chapter-curtain-overlay");
+
+        ScrollTrigger.create({
+          trigger: chapterEl,
+          start: "top bottom",
+          end: "bottom top",
+          onToggle: (self) => {
+            const wc = self.isActive ? "transform, opacity" : "auto";
+            if (currentContent) currentContent.style.willChange = wc;
+            if (currentOverlay) currentOverlay.style.willChange = self.isActive ? "opacity" : "auto";
+            if (wmInner) wmInner.style.willChange = wc;
+          },
+        });
+
+        if (i < PRODUCTS.length - 1) {
+          const nextProduct = PRODUCTS[i + 1];
+          const nextChapterEl = document.getElementById(nextProduct.slug);
+          if (nextChapterEl) {
+            if (wmExit) {
+              gsap.fromTo(
+                wmExit,
+                { opacity: 1 },
+                {
+                  opacity: 0,
+                  ease: "none",
+                  scrollTrigger: {
+                    trigger: nextChapterEl,
+                    start: "top bottom",
+                    end: "top top",
+                    scrub: true,
+                  },
+                }
+              );
+            }
+            if (wmInner) {
+              gsap.fromTo(
+                wmInner,
+                { xPercent: 0, opacity: 0.1 },
+                {
+                  xPercent: -12.5,
+                  opacity: 0.06,
+                  ease: "none",
+                  immediateRender: false,
+                  scrollTrigger: {
+                    trigger: nextChapterEl,
+                    start: "top bottom",
+                    end: "top top",
+                    scrub: true,
+                  },
+                }
+              );
+            }
+
+            if (currentContent && currentOverlay) {
+              gsap.to(currentContent, {
+                scale: 0.94,
+                opacity: 0.4,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: nextChapterEl,
+                  start: "top bottom",
+                  end: "top top",
+                  scrub: true,
+                },
+              });
+
+              gsap.to(currentOverlay, {
+                opacity: 0.3,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: nextChapterEl,
+                  start: "top bottom",
+                  end: "top top",
+                  scrub: true,
+                },
+              });
+            }
+
+            // Incoming chapter clip-path inset(8%) to inset(0%) and translate 60px to 0
+            gsap.fromTo(
+              nextChapterEl,
+              {
+                clipPath: "inset(8% 0% 0% 0%)",
+                y: 60,
+              },
+              {
+                clipPath: "inset(0% 0% 0% 0%)",
+                y: 0,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: nextChapterEl,
+                  start: "top bottom",
+                  end: "top top",
+                  scrub: true,
+                  onUpdate: (self) => {
+                    if (self.isActive) {
+                      if (self.progress >= 0.5) {
+                        setActiveSlug(nextProduct.slug);
+                      } else {
+                        setActiveSlug(p.slug);
+                      }
+                    }
+                  },
+                },
+              }
+            );
+          }
+        } else {
+          // Last chapter watermark fade-out as section exits into collection
+          const collectionTrigger = document.getElementById("collection") || chapterEl;
+          if (wmExit) {
+            gsap.fromTo(
+              wmExit,
+              { opacity: 1 },
+              {
+                opacity: 0,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: collectionTrigger,
+                  start: "top bottom",
+                  end: "top top",
+                  scrub: true,
+                },
+              }
+            );
+          }
+          if (wmInner) {
+            gsap.fromTo(
+              wmInner,
+              { xPercent: 0, opacity: 0.1 },
+              {
+                xPercent: -12.5,
+                opacity: 0.06,
+                ease: "none",
+                immediateRender: false,
+                scrollTrigger: {
+                  trigger: collectionTrigger,
+                  start: "top bottom",
+                  end: "top top",
+                  scrub: true,
+                },
+              }
+            );
+          }
+        }
+
+        // Desktop fine-pointer ONLY: float, orbit & dot, pointer tilt, magnetic CTA
+        let tiltController: InteractiveController | null = null;
+        let magneticController: InteractiveController | null = null;
+
+        if (finePointerDesktop) {
+          if (bottleFloatEl) {
+            floatTweens.push(
+              gsap.fromTo(
+                bottleFloatEl,
+                { y: 6 },
+                { y: -6, duration: 3, ease: "sine.inOut", yoyo: true, repeat: -1 }
+              )
+            );
+          }
+          if (bottleShadowEl) {
+            floatTweens.push(
+              gsap.fromTo(
+                bottleShadowEl,
+                { scale: 1 },
+                { scale: 0.94, duration: 3, ease: "sine.inOut", yoyo: true, repeat: -1 }
+              )
+            );
+          }
+          if (orbitEl) {
+            floatTweens.push(
+              gsap.to(orbitEl, {
+                rotation: 360,
+                duration: 60,
+                ease: "none",
+                repeat: -1,
+              })
+            );
+          }
+          if (orbitDotEl) {
+            orbitDotEl.style.display = "block";
+          }
+          if (plateTiltEl) {
+            tiltController = attachPointerTilt(plateTiltEl, {
+              maxDeg: 4,
+              perspective: 1000,
+              easeFactor: 0.12,
+            });
+          }
+          if (magneticEl) {
+            magneticController = attachMagnetic(magneticEl, {
+              maxPx: 6,
+              easeFactor: 0.16,
+            });
+          }
+        } else if (orbitDotEl) {
+          orbitDotEl.style.display = "none";
+        }
+
+        controllersBySlug.set(p.slug, {
+          floatTweens,
+          tiltController,
+          magneticController,
+        });
+
+        return () => {
+          floatTweens.forEach((tw) => tw.kill());
+          tiltController?.destroy();
+          magneticController?.destroy();
+          controllersBySlug.delete(p.slug);
+        };
+      });
+
+      // Tablet & Mobile (< 1024px): simple reveals, vertical scent trail, low static watermark
+      mm.add("(max-width: 1023px)", () => {
+        if (wmOuter) gsap.set(wmOuter, { opacity: 1 });
+        if (wmExit) gsap.set(wmExit, { opacity: 1 });
+        if (wmInner) gsap.set(wmInner, { opacity: 0.06, xPercent: 0 });
+        if (orbitDotEl) orbitDotEl.style.display = "none";
+        if (quoteWords.length > 0) gsap.set(quoteWords, { opacity: 1 });
+        if (atmosphereCircle) gsap.set(atmosphereCircle, { scale: 1 });
+
+        const titleEl = chapterEl.querySelector("h3");
+        if (titleEl) {
+          gsap.fromTo(
+            titleEl,
+            { y: 20, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.7,
+              ease: "power3.out",
+              scrollTrigger: { trigger: chapterEl, start: "top 82%", once: true },
+            }
+          );
+        }
+
+        if (trailLineMobile) {
+          const mobileTrailTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: trailLineMobile.parentElement || chapterEl,
+              start: "top 85%",
+              once: true,
+            },
+          });
+          mobileTrailTl.fromTo(
+            trailLineMobile,
+            { scaleY: 0 },
+            { scaleY: 1, duration: 0.65, ease: "power2.out" },
+            0
+          );
+          if (trailItemsMobile.length > 0) {
+            mobileTrailTl.fromTo(
+              trailItemsMobile,
+              { opacity: 0, x: -8 },
+              { opacity: 1, x: 0, duration: 0.4, stagger: 0.12, ease: "power3.out" },
+              0.08
+            );
+          }
+        }
       });
     });
 
+    // Off-screen pausing via IntersectionObserver for float, orbit, and tilt
+    let observer: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const target = entry.target as HTMLElement;
+            const slug = target.id;
+            const isInView = entry.isIntersecting;
+            target.setAttribute("data-in-view", isInView ? "true" : "false");
+
+            const ctrl = controllersBySlug.get(slug);
+            if (!ctrl) return;
+
+            ctrl.floatTweens.forEach((tw) => {
+              if (isInView) {
+                tw.play();
+              } else {
+                tw.pause();
+              }
+            });
+            ctrl.tiltController?.setPaused(!isInView);
+            ctrl.magneticController?.setPaused(!isInView);
+          });
+        },
+        { threshold: 0.01, rootMargin: "60px 0px" }
+      );
+
+      PRODUCTS.forEach((p) => {
+        const el = document.getElementById(p.slug);
+        if (el) observer?.observe(el);
+      });
+    }
+
     return () => {
+      observer?.disconnect();
       mm.revert();
     };
   }, [], containerRef);
@@ -229,7 +801,9 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
   const scrollToChapter = (slug: string) => {
     const el = document.getElementById(slug);
     if (el) {
-      const win = window as unknown as { lenis?: { scrollTo: (t: HTMLElement, o?: object) => void } };
+      const win = window as unknown as {
+        lenis?: { scrollTo: (t: HTMLElement, o?: object) => void };
+      };
       if (win.lenis) {
         win.lenis.scrollTo(el, { offset: 0 });
       } else {
@@ -244,42 +818,66 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
       ref={containerRef}
       className="relative w-full flex flex-col"
     >
-      {/* Vertical Progress Rail (Visible on Large Screens only when #scents is on screen) */}
+      {/* Vertical Progress Rail + Rolling 01 / 04 Counter (Solid flat plate, no glass/blur) */}
       <nav
         ref={railRef}
         aria-label="Scent chapters navigation"
-        className="hidden lg:flex fixed left-5 xl:left-8 top-1/2 -translate-y-1/2 z-50 flex-col items-center gap-4 p-2.5 bg-cream/90 backdrop-blur-md border border-ink/10 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity"
+        className="hidden lg:flex fixed left-5 xl:left-8 top-1/2 -translate-y-1/2 z-50 items-center gap-2.5 opacity-0 pointer-events-none"
       >
-        <span className="font-sans text-[9px] uppercase tracking-widest text-ink/50 rotate-180 [writing-mode:vertical-lr] mb-1">
-          SCENTS
-        </span>
-        {PRODUCTS.map((p, index) => {
-          const isActive = activeSlug === p.slug;
-          const activeColor = personaColorHex[p.color];
+        <div className="flex flex-col items-center gap-4 p-2.5 bg-cream border border-ink/15 rounded-full">
+          <span className="font-sans text-[9px] uppercase tracking-widest text-ink/70 rotate-180 [writing-mode:vertical-lr] mb-1">
+            SCENTS
+          </span>
+          {PRODUCTS.map((p, index) => {
+            const isActive = activeSlug === p.slug;
+            const activeColor = personaColorHex[p.color];
 
-          return (
-            <button
-              key={p.slug}
-              type="button"
-              onClick={() => scrollToChapter(p.slug)}
-              aria-label={`Scroll to ${p.name}`}
-              className="group relative flex items-center justify-center p-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-full"
+            return (
+              <button
+                key={p.slug}
+                type="button"
+                onClick={() => scrollToChapter(p.slug)}
+                aria-label={`Scroll to ${p.name}`}
+                className="group relative flex items-center justify-center p-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold rounded-full"
+              >
+                <span
+                  style={isActive ? { backgroundColor: activeColor } : undefined}
+                  className={`block w-3 h-3 rounded-full transition-transform duration-300 ${
+                    isActive
+                      ? "scale-100"
+                      : "scale-[0.65] bg-ink/30 group-hover:bg-ink/60"
+                  }`}
+                />
+                {/* Tooltip on hover */}
+                <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 bg-ink text-cream text-[10px] font-sans font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-cream/15">
+                  0{index + 1} · {p.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Rolling Cormorant Italic Counter beside the SCENTS rail */}
+        <div
+          data-rail-counter="true"
+          aria-live="polite"
+          className="flex items-center px-2.5 py-1 bg-cream border border-ink/15 font-display italic text-sm text-ink select-none"
+        >
+          <span className="inline-block h-[1.25em] overflow-hidden leading-[1.25em] align-middle">
+            <span
+              className="flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none"
+              style={{ transform: `translateY(-${activeIndex * 25}%)` }}
             >
-              <span
-                style={isActive ? { backgroundColor: activeColor } : undefined}
-                className={`block rounded-full transition-all duration-300 ${
-                  isActive
-                    ? "w-3 h-3 scale-110 shadow-sm"
-                    : "w-2 h-2 bg-ink/25 group-hover:bg-ink/60"
-                }`}
-              />
-              {/* Tooltip on hover */}
-              <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 bg-ink text-cream text-[10px] font-sans font-semibold uppercase tracking-wider rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md">
-                0{index + 1} · {p.name}
-              </span>
-            </button>
-          );
-        })}
+              {PRODUCTS.map((item) => (
+                <span key={item.slug} className="block h-[1.25em] leading-[1.25em]">
+                  {item.number}
+                </span>
+              ))}
+            </span>
+          </span>
+          <span className="mx-1 text-ink/60">/</span>
+          <span>04</span>
+        </div>
       </nav>
 
       {/* Intro Header Row */}
@@ -288,15 +886,15 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
           <div>
             <div className="mb-3">
               <Tag color="rust">
-                {COPY.personaArchitecture.heading}
+                {COPY.fourFlexes?.eyebrow || COPY.personaArchitecture?.heading || "ONE BELIEF · FOUR WAYS TO CARRY IT"}
               </Tag>
             </div>
             <h2 className="font-display text-[clamp(36px,4.5vw,68px)] text-ink leading-tight">
-              The catalogue story
+              {COPY.fourFlexes?.headline || "Pick the one that sounds like you."}
             </h2>
           </div>
           <p className="font-sans text-xs md:text-sm text-ink/75 max-w-xl leading-relaxed uppercase tracking-wider font-medium">
-            {COPY.personaArchitecture.intro}
+            {COPY.fourFlexes?.subhead || COPY.personaArchitecture?.subhead || "Every SIRRA scent is a different route to the same place: your own top-class. None outranks another."}
           </p>
         </div>
       </div>
@@ -312,128 +910,236 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
         const ruleColor = ruleColorClasses[product.color];
         const tintHex = personaColorHex[product.color];
 
+        const desktopMaskGradient = isEven
+          ? "linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 38%, rgba(0,0,0,0) 50%, rgba(0,0,0,0) 100%)"
+          : "linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 38%, rgba(0,0,0,0) 50%, rgba(0,0,0,0) 100%)";
+
+        const mobileMaskGradient =
+          "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 42%, rgba(0,0,0,0) 58%, rgba(0,0,0,0) 100%)";
+
+        const watermarkMaskVars = {
+          "--wm-mask-desktop": desktopMaskGradient,
+          "--wm-mask-mobile": mobileMaskGradient,
+        } as React.CSSProperties;
+
         return (
           <article
             key={product.slug}
             id={product.slug}
+            data-in-view="true"
             style={{ zIndex: (index + 1) * 10 }}
             className={`chapter-card relative lg:sticky lg:top-0 w-full min-h-[100svh] lg:h-[100svh] py-14 lg:py-0 px-5 md:px-12 lg:px-16 flex items-center border-b border-ink/10 overflow-hidden ${bgClass}`}
           >
             {/* Screen reader anchor */}
             <span id={`chapter-${product.slug}`} className="sr-only" />
 
-            {/* Solid Ink Overlay for Stacking Dimming (Scrubbed 0 to 30%) */}
+            {/* Solid Ink Overlay for Stacking Dimming (No CSS transition competing with scrub) */}
             <div
-              className="chapter-curtain-overlay absolute inset-0 bg-ink pointer-events-none z-20 opacity-0 transition-opacity"
+              className="chapter-curtain-overlay absolute inset-0 bg-ink pointer-events-none z-20 opacity-0"
               aria-hidden="true"
             />
 
-            {/* Giant Outlined Scent Name (180px-360px, 1px stroke at 30%) drifting right-to-left across seam */}
+            {/* Quiet Persona-Coloured Watermark (Masked over Media Column only, fades 0 -> 0.06..0.10 -> 0) */}
             <div
               aria-hidden="true"
-              className="chapter-watermark absolute top-1/2 left-0 w-full -translate-y-1/2 pointer-events-none select-none overflow-hidden z-0"
+              style={watermarkMaskVars}
+              className="chapter-watermark absolute inset-0 pointer-events-none select-none overflow-hidden z-0 [mask-image:var(--wm-mask-mobile)] [-webkit-mask-image:var(--wm-mask-mobile)] lg:[mask-image:var(--wm-mask-desktop)] lg:[-webkit-mask-image:var(--wm-mask-desktop)]"
             >
-              <span
-                className="chapter-watermark-text block font-display font-light text-[clamp(180px,22vw,360px)] leading-none uppercase whitespace-nowrap tracking-tight text-transparent opacity-30"
-                style={{
-                  WebkitTextStroke: "1px #141312",
-                }}
-              >
-                {product.name}
-              </span>
+              <div className="chapter-watermark-exit w-full h-full flex items-center">
+                <span
+                  className="chapter-watermark-text block font-display font-light text-[clamp(180px,22vw,360px)] leading-none uppercase whitespace-nowrap tracking-tight text-transparent opacity-[0.06]"
+                  style={{
+                    WebkitTextStroke: `1px ${tintHex}`,
+                  }}
+                >
+                  {product.name}
+                </span>
+              </div>
             </div>
 
             {/* Chapter Content Grid */}
             <div className="chapter-content relative z-10 max-w-[1440px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-14 items-center">
-              {/* Media Side: Two Crisp Side-by-Side Blocks with 24px Gap, Zero Frosted Glass, Zero Glows */}
+              {/* Media Side */}
               <div
-                className={`chapter-media-col lg:col-span-6 w-full ${
+                className={`chapter-media-col relative lg:col-span-6 w-full ${
                   isEven ? "lg:order-2" : "lg:order-1"
                 }`}
               >
-                <div className="relative w-full max-w-[560px] mx-auto flex items-start gap-6">
-                  {/* 1. Pack-Shot Plate: 58% width, aspect 4/5, grey #ECECEA, single contact shadow opacity 0.18 */}
-                  <div
-                    tabIndex={0}
-                    aria-label={`${product.name} bottle and fragrance profile`}
-                    className="group/pack relative w-[58%] aspect-[4/5] bg-[#ECECEA] border border-ink/10 shadow-[0_12px_24px_-6px_rgba(0,0,0,0.18)] overflow-hidden flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-                  >
-                    {/* Centered Pack Shot Bottle */}
-                    <div className="relative w-[78%] h-[78%] transition-transform duration-500 group-hover/pack:scale-[1.03]">
-                      <Image
-                        src={packShot.src}
-                        alt={packShot.alt}
-                        fill
-                        quality={90}
-                        placeholder="blur"
-                        blurDataURL={packShot.blurDataURL}
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 45vw, 320px"
-                        className="object-contain object-center mix-blend-multiply"
-                      />
+                {/* Flat Large Atmosphere Circle (5% Persona Colour, Zero Blur) */}
+                <div
+                  aria-hidden="true"
+                  style={{ backgroundColor: tintHex, opacity: 0.05 }}
+                  className="chapter-atmosphere-circle pointer-events-none select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[360px] sm:w-[460px] xl:w-[560px] aspect-square rounded-full z-0"
+                />
+
+                {/* Large Outlined Numeral ("01"–"04", 1px Persona Stroke at 8% Opacity, Parallax 0.05) */}
+                <span
+                  data-chapter-numeral="true"
+                  aria-hidden="true"
+                  style={{
+                    WebkitTextStroke: `1px ${tintHex}`,
+                    opacity: 0.08,
+                  }}
+                  className="chapter-numeral pointer-events-none select-none absolute -top-12 -left-2 sm:-top-16 sm:-left-6 font-display italic text-[clamp(120px,14vw,240px)] leading-none text-transparent z-0"
+                >
+                  {product.number}
+                </span>
+
+                <div className="relative z-10 w-full max-w-[560px] mx-auto flex items-start gap-6">
+                  {/* 1. Pack-Shot Plate + Centered Orbit Ring + Float + Pointer Tilt */}
+                  <div className="pack-plate-scroll relative w-[58%] aspect-[4/5]">
+                    {/* Centered SVG Orbit Ring (120% Plate Width, 1px Dashed 2 10 Persona Colour) */}
+                    <div
+                      data-orbit-ring="true"
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] aspect-square z-0"
+                    >
+                      <svg
+                        viewBox="0 0 200 200"
+                        className="w-full h-full overflow-visible"
+                      >
+                        <circle
+                          cx="100"
+                          cy="100"
+                          r="99"
+                          fill="none"
+                          stroke={tintHex}
+                          strokeOpacity={0.35}
+                          strokeWidth="1"
+                          strokeDasharray="2 10"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                        <circle
+                          data-orbit-dot="true"
+                          cx="100"
+                          cy="1"
+                          r="3.5"
+                          fill={tintHex}
+                          className="hidden lg:block motion-reduce:hidden"
+                        />
+                      </svg>
                     </div>
 
-                    {/* Single Contact Shadow Under Bottle (opacity 0.18, blur 6px) */}
-                    <div
-                      aria-hidden="true"
-                      className="absolute bottom-[9%] left-1/2 -translate-x-1/2 w-[55%] h-3 bg-black/18 rounded-full blur-[6px] pointer-events-none"
-                    />
+                    {/* Pointer Tilt Wrapper (Flat Grey Plate, Single Tight Contact Shadow Under Bottle Only) */}
+                    <div data-plate-tilt="true" className="relative z-10 w-full h-full">
+                      <div
+                        tabIndex={0}
+                        aria-label={`${product.name} bottle and fragrance profile`}
+                        className="group/pack relative w-full h-full bg-[#ECECEA] border border-ink/10 overflow-hidden flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                      >
+                        {/* Centered Floating Bottle */}
+                        <div
+                          data-bottle-float="true"
+                          className="relative w-[78%] h-[78%]"
+                        >
+                          <div className="relative w-full h-full transition-transform duration-500 group-hover/pack:scale-[1.03] motion-reduce:transition-none">
+                            <Image
+                              src={packShot.src}
+                              alt={packShot.alt}
+                              fill
+                              quality={90}
+                              placeholder="blur"
+                              blurDataURL={packShot.blurDataURL}
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 45vw, 320px"
+                              className="object-contain object-center mix-blend-multiply"
+                            />
+                          </div>
+                        </div>
 
-                    {/* Hover / Keyboard Focus Solid Slide-Up Persona Notes Panel */}
-                    <div
-                      style={{ backgroundColor: tintHex }}
-                      className="absolute inset-0 z-20 p-5 sm:p-6 text-cream flex flex-col justify-between translate-y-full group-hover/pack:translate-y-0 group-focus-within:translate-y-0 transition-transform duration-500 ease-out pointer-events-none group-hover/pack:pointer-events-auto group-focus-within:pointer-events-auto shadow-2xl"
-                    >
-                      <div>
-                        <span className="block font-sans text-[10px] uppercase tracking-[0.2em] text-cream/75 font-semibold mb-1">
-                          PROFILE
-                        </span>
-                        <p className="font-display italic text-base sm:text-lg text-cream leading-snug">
-                          {product.profile}
-                        </p>
-                      </div>
+                        {/* Single Tight Contact Shadow Under Bottle Only (opacity 0.18, blur 8px <= 12px) */}
+                        <div
+                          data-bottle-shadow="true"
+                          aria-hidden="true"
+                          className="absolute bottom-[9%] left-1/2 -translate-x-1/2 w-[55%] h-3 bg-black/18 rounded-full blur-[8px] pointer-events-none"
+                        />
 
-                      <div>
-                        <span className="block font-sans text-[10px] uppercase tracking-[0.2em] text-cream/75 font-semibold mb-1.5">
-                          NOTES
-                        </span>
-                        <p className="font-sans text-xs sm:text-sm text-cream/90 leading-relaxed font-normal">
-                          {product.notes.join(" · ")}
-                        </p>
-                      </div>
+                        {/* Hover / Keyboard Focus Solid Slide-Up Persona Notes Panel (Flat, No Blur) */}
+                        <div
+                          style={{ backgroundColor: tintHex }}
+                          className="absolute inset-0 z-20 p-5 sm:p-6 text-cream flex flex-col justify-between translate-y-full group-hover/pack:translate-y-0 group-focus-within:translate-y-0 transition-transform duration-500 ease-out pointer-events-none group-hover/pack:pointer-events-auto group-focus-within:pointer-events-auto motion-reduce:transition-none"
+                        >
+                          <div>
+                            <span className="block font-sans text-[10px] uppercase tracking-[0.2em] text-cream/80 font-semibold mb-1">
+                              PROFILE
+                            </span>
+                            <p className="font-display italic text-base sm:text-lg text-cream leading-snug">
+                              {product.profile}
+                            </p>
+                          </div>
 
-                      <div className="pt-2 border-t border-cream/20 flex items-center justify-between">
-                        <span className="font-sans text-[10px] uppercase tracking-wider text-cream/60">
-                          {product.volume} {product.concentration}
-                        </span>
-                        <span className="font-display italic text-sm text-cream/80">
-                          {product.role}
-                        </span>
+                          <div>
+                            <span className="block font-sans text-[10px] uppercase tracking-[0.2em] text-cream/80 font-semibold mb-1.5">
+                              NOTES
+                            </span>
+                            <p className="font-sans text-xs sm:text-sm text-cream/95 leading-relaxed font-normal">
+                              {product.notes.join(" · ")}
+                            </p>
+                          </div>
+
+                          <div className="pt-2 border-t border-cream/25 flex items-center justify-between">
+                            <span className="font-sans text-[10px] uppercase tracking-wider text-cream/75">
+                              {product.volume} {product.concentration}
+                            </span>
+                            <span className="font-display italic text-sm text-cream/90">
+                              {product.role}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* 2. Lifestyle Photograph: offset by 48px, aspect 3/4, max 1.3x native */}
-                  <div className="relative w-[calc(42%-24px)] translate-y-8 sm:translate-y-12 aspect-[3/4] overflow-hidden border border-ink/10 shadow-lg bg-ink/10">
-                    {videoSrc ? (
-                      <VideoSlot
-                        src={videoSrc}
-                        poster={personaImg}
-                        alt={personaImg.alt}
-                        sizes="(max-width: 640px) 40vw, (max-width: 1024px) 35vw, 240px"
-                        quality={90}
+                  {/* 2. Lifestyle Photograph + 14px Drawn 1px Persona Frame + Parallax */}
+                  <div className="persona-photo-scroll relative w-[calc(42%-24px)] translate-y-8 sm:translate-y-12 aspect-[3/4]">
+                    {/* 14px Offset 1px Persona-Colour SVG Frame Drawn on Enter */}
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 100 100"
+                      preserveAspectRatio="none"
+                      className="pointer-events-none absolute top-[14px] left-[14px] w-full h-full z-0 overflow-visible"
+                    >
+                      <rect
+                        className="persona-frame-stroke"
+                        x="0.5"
+                        y="0.5"
+                        width="99"
+                        height="99"
+                        fill="none"
+                        stroke={tintHex}
+                        strokeWidth="1"
+                        pathLength={100}
+                        strokeDasharray="100"
+                        strokeDashoffset="100"
+                        vectorEffect="non-scaling-stroke"
                       />
-                    ) : (
-                      <Image
-                        src={personaImg.src}
-                        alt={personaImg.alt}
-                        fill
-                        quality={90}
-                        placeholder="blur"
-                        blurDataURL={personaImg.blurDataURL}
-                        sizes="(max-width: 640px) 40vw, (max-width: 1024px) 35vw, 240px"
-                        className="object-cover object-center"
-                      />
-                    )}
+                    </svg>
+
+                    <div className="persona-photo-clip relative z-10 w-full h-full overflow-hidden border border-ink/10 bg-ink/10">
+                      <div className="persona-photo-parallax relative -top-[6%] left-0 w-full h-[112%]">
+                        <div className="persona-photo-scale relative w-full h-full">
+                          {videoSrc ? (
+                            <VideoSlot
+                              src={videoSrc}
+                              poster={personaImg}
+                              alt={personaImg.alt}
+                              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 40vw, 320px"
+                              quality={90}
+                            />
+                          ) : (
+                            <Image
+                              src={personaImg.src}
+                              alt={personaImg.alt}
+                              fill
+                              quality={90}
+                              placeholder="blur"
+                              blurDataURL={personaImg.blurDataURL}
+                              sizes="(max-width: 640px) 45vw, (max-width: 1024px) 40vw, 320px"
+                              className="object-cover object-center"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -444,79 +1150,219 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
                   isEven ? "lg:order-1" : "lg:order-2"
                 }`}
               >
-                {/* Persona Tag & Role */}
+                {/* Mobile / Tablet chapter counter above Tag */}
+                <div className="lg:hidden mb-1.5 font-display italic text-base text-ink/75 select-none">
+                  {product.number} / 04
+                </div>
+
+                {/* Persona Tag & Role Line */}
                 <div className="flex flex-wrap items-center gap-3 mb-2.5">
-                  <Tag color={product.color}>
-                    {product.number} · {product.name.toUpperCase()}
-                  </Tag>
-                  <span
-                    className={`font-sans font-bold text-xs uppercase tracking-widest ${roleColor}`}
-                  >
-                    {product.role}
+                  <div className="chapter-tag-enter inline-block">
+                    <Tag color={product.color}>
+                      {product.number} · {product.name.toUpperCase()}
+                    </Tag>
+                  </div>
+                  <span className="inline-block overflow-hidden">
+                    <span
+                      data-chapter-role="true"
+                      className={`chapter-role-inner inline-block font-sans font-bold text-xs uppercase tracking-widest ${roleColor}`}
+                    >
+                      {product.role}
+                    </span>
                   </span>
                 </div>
 
-                {/* Scent Name */}
-                <h3 className="font-display font-light text-[clamp(40px,4.5vw,70px)] text-ink leading-none mb-3">
-                  {product.name}
+                {/* Scent Name: Masked Letter Boxes with 0.04s Stagger */}
+                <h3
+                  aria-label={product.name}
+                  className="font-display font-light text-[clamp(40px,4.5vw,70px)] text-ink leading-none mb-4"
+                >
+                  {product.name.split(" ").map((word, wIdx, wordsArr) => (
+                    <span
+                      key={wIdx}
+                      className={`inline-flex whitespace-nowrap ${
+                        wIdx < wordsArr.length - 1 ? "mr-[0.26em]" : ""
+                      }`}
+                    >
+                      {word.split("").map((char, cIdx) => (
+                        <span
+                          key={cIdx}
+                          className="inline-block overflow-hidden align-bottom"
+                        >
+                          <span className="chapter-char inline-block">
+                            {char}
+                          </span>
+                        </span>
+                      ))}
+                    </span>
+                  ))}
                 </h3>
 
-                {/* Large Cormorant Italic Quote */}
-                <p className="font-display italic text-[clamp(20px,2.2vw,30px)] text-ink leading-snug border-l-2 border-ink/25 pl-4 sm:pl-5 my-2">
-                  {product.quote}
-                </p>
+                {/* Large Decorative Opening Quote Mark (96px Cormorant in Persona Colour, 0.9 Opacity) */}
+                <span
+                  aria-hidden="true"
+                  style={{ color: tintHex, opacity: 0.9 }}
+                  className="chapter-quote-mark font-display text-[96px] leading-[0.42] h-9 select-none pointer-events-none block"
+                >
+                  “
+                </span>
+
+                {/* Quote Row with Drawn ScaleY Rule + Scrubbed Word Reveal */}
+                <div className="my-2 flex items-stretch gap-4 sm:gap-5">
+                  <span
+                    aria-hidden="true"
+                    className="chapter-quote-rule w-[2px] shrink-0 origin-top bg-ink/25"
+                  />
+                  <p
+                    data-chapter-quote="true"
+                    aria-label={product.quote}
+                    className="font-display italic text-[clamp(20px,2.2vw,30px)] text-ink leading-snug"
+                  >
+                    {product.quote.split(" ").map((word, wIdx) => (
+                      <span
+                        key={wIdx}
+                        className="reveal-word inline-block mr-[0.24em]"
+                      >
+                        {word}
+                      </span>
+                    ))}
+                  </p>
+                </div>
 
                 {/* Verbatim Body Paragraph */}
-                <p className="font-sans text-xs sm:text-sm text-ink/80 leading-relaxed font-normal my-2.5">
+                <p
+                  data-chapter-body="true"
+                  className="chapter-detail-item font-sans text-xs sm:text-sm text-ink/85 leading-relaxed font-normal my-2.5"
+                >
                   {product.body}
                 </p>
+
+                {/* Reach for it Occasion */}
+                {product.reachForIt && (
+                  <div
+                    data-chapter-reach="true"
+                    className="chapter-detail-item my-2.5 flex items-baseline gap-2 text-xs sm:text-sm text-ink/85 font-sans"
+                  >
+                    <span className="font-semibold text-ink uppercase tracking-wider text-[11px] shrink-0">
+                      Reach for it:
+                    </span>
+                    <span className="italic">{product.reachForIt}</span>
+                  </div>
+                )}
 
                 {/* Animated Persona Colour Rule */}
                 <div className={`chapter-rule w-full h-[1.5px] my-3 ${ruleColor}`} />
 
                 {/* Profile Line */}
-                <div className="mb-3">
-                  <span className="block font-sans text-[11px] uppercase tracking-[0.2em] text-ink/60 mb-0.5">
+                <div className="mb-3.5">
+                  <span className="block font-sans text-[11px] uppercase tracking-[0.2em] text-ink/75 mb-0.5">
                     PROFILE
                   </span>
-                  <p className="font-display italic text-base sm:text-lg text-ink font-medium">
+                  <p
+                    data-chapter-profile="true"
+                    className="font-display italic text-base sm:text-lg text-ink font-medium"
+                  >
                     {product.profile}
                   </p>
                 </div>
 
-                {/* Clean Notes Row Below Story: Hairline border, Cormorant italic 22px, small persona dot */}
-                <div className="border-t border-ink/10 pt-3.5 mb-5">
-                  <span className="block font-sans text-[11px] uppercase tracking-[0.2em] text-ink/60 mb-1.5">
+                {/* Notes Scent Trail (Horizontal on >=1024px Desktop, Vertical on Tablet/Mobile) */}
+                <div
+                  data-chapter-notes="true"
+                  className="border-t border-ink/10 pt-3.5 mb-5"
+                >
+                  <span className="block font-sans text-[11px] uppercase tracking-[0.2em] text-ink/75 mb-3">
                     NOTES
                   </span>
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      style={{ backgroundColor: tintHex }}
-                      className="w-2 h-2 rounded-full shrink-0"
+
+                  {/* Desktop Horizontal Scent Trail */}
+                  <div
+                    data-scent-trail="true"
+                    className="hidden lg:block relative pt-1"
+                  >
+                    <div
                       aria-hidden="true"
+                      style={{ backgroundColor: tintHex }}
+                      className="scent-trail-line-desktop origin-left h-[1px] w-full absolute top-[5px] left-0"
                     />
-                    <p className="font-display italic text-lg sm:text-[22px] leading-snug text-ink">
-                      {product.notes.join(" · ")}
-                    </p>
+                    <div className="grid grid-cols-5 gap-3 relative z-10">
+                      {product.notes.map((note, nIdx) => (
+                        <div
+                          key={nIdx}
+                          className="scent-trail-item-desktop flex flex-col items-start"
+                        >
+                          <span
+                            aria-hidden="true"
+                            style={{ backgroundColor: tintHex }}
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                          />
+                          <span
+                            data-note-label="true"
+                            className="font-display italic text-[19px] xl:text-[22px] leading-tight text-ink mt-2.5"
+                          >
+                            {note}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Mobile & Tablet Vertical Scent Trail */}
+                  <div className="lg:hidden relative pl-6 flex flex-col gap-3">
+                    <div
+                      aria-hidden="true"
+                      style={{ backgroundColor: tintHex }}
+                      className="scent-trail-line-mobile origin-top w-[1px] absolute top-2 bottom-2 left-[4.5px]"
+                    />
+                    {product.notes.map((note, nIdx) => (
+                      <div
+                        key={nIdx}
+                        className="scent-trail-item-mobile relative flex items-center"
+                      >
+                        <span
+                          aria-hidden="true"
+                          style={{ backgroundColor: tintHex }}
+                          className="w-2.5 h-2.5 rounded-full absolute -left-6 shrink-0"
+                        />
+                        <span
+                          data-note-label="true"
+                          className="font-display italic text-[22px] leading-snug text-ink"
+                        >
+                          {note}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Action Block: Primary Discover Button + Secondary Marketplace Row */}
+                {/* Action Block: Sweep + Magnetic Discover Button + Secondary Marketplace Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 pt-1">
-                  <Button variant="dark" href={`/scent/${product.slug}`}>
-                    Discover {product.name}
-                  </Button>
+                  <div className="chapter-cta-magnetic inline-block w-fit">
+                    <Link
+                      href={`/scent/${product.slug}`}
+                      className="group/btn relative inline-flex items-center justify-center overflow-hidden bg-ink text-cream font-sans font-semibold uppercase text-xs md:text-sm tracking-wider px-6 py-3 transition-transform duration-300 ease-out hover:-translate-y-[2px] focus-visible:-translate-y-[2px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold select-none motion-reduce:transition-none"
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{ backgroundColor: tintHex }}
+                        className="absolute inset-0 scale-x-0 origin-left transition-transform duration-[400ms] ease-out group-hover/btn:scale-x-100 group-focus-visible/btn:scale-x-100 motion-reduce:transition-none"
+                      />
+                      <span className="relative z-10 text-cream">
+                        Discover {product.name}
+                      </span>
+                    </Link>
+                  </div>
 
                   {/* Secondary Marketplace Row */}
                   <div className="flex items-center gap-2.5">
-                    <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-ink/60">
+                    <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-ink/75">
                       AVAILABLE ON
                     </span>
                     <div className="flex items-center gap-1.5">
                       <OutboundLink
                         market="amazon"
                         product={product.slug}
-                        className="h-7 px-2.5 bg-cream border border-ink/15 hover:border-ink/50 text-ink flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
+                        className="h-7 px-2.5 bg-cream border border-ink/15 hover:border-ink/50 text-ink flex items-center justify-center transition-transform duration-200 hover:-translate-y-0.5"
                         aria-label={`Buy ${product.name} on Amazon`}
                       >
                         <MarketLogo
@@ -529,7 +1375,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
                       <OutboundLink
                         market="flipkart"
                         product={product.slug}
-                        className="h-7 px-2.5 bg-cream border border-ink/15 hover:border-ink/50 text-ink flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
+                        className="h-7 px-2.5 bg-cream border border-ink/15 hover:border-ink/50 text-ink flex items-center justify-center transition-transform duration-200 hover:-translate-y-0.5"
                         aria-label={`Buy ${product.name} on Flipkart`}
                       >
                         <MarketLogo
@@ -542,7 +1388,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
                       <OutboundLink
                         market="meesho"
                         product={product.slug}
-                        className="h-7 px-2.5 bg-cream border border-ink/15 hover:border-ink/50 text-ink flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
+                        className="h-7 px-2.5 bg-cream border border-ink/15 hover:border-ink/50 text-ink flex items-center justify-center transition-transform duration-200 hover:-translate-y-0.5"
                         aria-label={`Buy ${product.name} on Meesho`}
                       >
                         <MarketLogo

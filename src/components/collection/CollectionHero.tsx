@@ -4,7 +4,7 @@ import React, { useRef } from "react";
 import Image from "next/image";
 import Tag from "@/components/ui/Tag";
 import Label from "@/components/ui/Label";
-import { IMAGES, PRODUCTS } from "@/content";
+import { IMAGES, PRODUCTS, COPY } from "@/content";
 import { useGsap, fadeUp, maskReveal } from "@/lib/motion";
 
 export function CollectionHero() {
@@ -39,15 +39,15 @@ export function CollectionHero() {
         {/* Left Column: Heading & Details */}
         <div ref={leftRef} className="md:col-span-7 flex flex-col items-start gap-4">
           <div className="mb-2">
-            <Tag color="rust">THE COLLECTION</Tag>
+            <Tag color="rust">{COPY.collection.eyebrow}</Tag>
           </div>
 
           <h1 className="font-display text-[clamp(44px,7.5vw,100px)] text-cream leading-[0.92] tracking-tight">
-            The collection
+            {COPY.collection.headline}
           </h1>
 
           <p className="font-sans text-sm md:text-base text-cream/80 max-w-md font-normal leading-relaxed mt-2">
-            Four scents, one idea. None outranks another.
+            {COPY.collection.subhead}
           </p>
 
           <div className="mt-2">

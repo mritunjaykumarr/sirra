@@ -21,6 +21,7 @@ export interface Product {
   oneLiner: string;
   quote: string;
   body: string;
+  reachForIt: string;
   profile: string;
   notes: string[];
   families: string[];
@@ -41,14 +42,15 @@ export const PRODUCTS: Product[] = [
     sku: "SIR-WAY-050",
     number: "01",
     name: "Wayfarer",
-    role: "The Wanderer's Flex",
+    role: "The Wanderer",
     summary:
-      "Confidence through movement. Belonging everywhere because you never needed one fixed address to prove yourself.",
+      "Home is the feeling of self, not a place you're from. Belong everywhere because you never needed anyone to know you first.",
     oneLiner:
-      "Confidence through movement. Belonging everywhere because you never needed one fixed address to prove yourself.",
-    quote: "“Top-class is a place you carry, not a place you’re from.”",
-    body: "Wayfarer is for the ones who treat every new city like a room they already own. Not tourists—locals-in-waiting. The flex isn't passport stamps; it's ease. You don't perform belonging—you just belong, wherever you land.",
-    profile: "Fresh / Aquatic / Liberating Mineral Woody",
+      "For locals-in-waiting, not tourists. You belong everywhere because you never needed anyone to know you first.",
+    quote: "“Home is the feeling of self, not a place you're from.”",
+    body: "For locals-in-waiting, not tourists. You belong everywhere because you never needed anyone to know you first.",
+    reachForIt: "New cities, early flights, rooms where nobody knows your name yet.",
+    profile: "Fresh · Aquatic · Mineral Woody",
     notes: ["Bergamot", "Sea Salt", "Juniper", "Driftwood", "Ambergris"],
     families: ["Fresh", "Woody"],
     volume: "50ml",
@@ -63,7 +65,7 @@ export const PRODUCTS: Product[] = [
       meesho: MARKETS.meesho.url,
     },
     status: "approved-brand-book",
-    source: "Brand Book (Persona Architecture & Persona Details)",
+    source: "4. The Four Flexes & 5. The Collection",
   },
   {
     slug: "equinox",
@@ -72,12 +74,13 @@ export const PRODUCTS: Product[] = [
     name: "Equinox",
     role: "The Quiet Top",
     summary:
-      "Top-class that doesn't announce itself. Nothing to prove. You already know—that's the whole flex.",
+      "Some people climb ladders to look down. Others just soar. The confidence is in the humility.",
     oneLiner:
-      "Top-class that doesn't announce itself. Nothing to prove. You already know—that's the whole flex.",
-    quote: "“Some people announce the top. Others just are it.”",
-    body: "Equinox is worn by people who stopped needing an audience a long time ago. Nothing to prove, nothing to perform. The confidence is already settled. It’s walking into a room without checking who’s watching.",
-    profile: "Refined Woody / Warm Amber / Cashmere",
+      "For people who stopped needing an audience long ago. The confidence is in the humility.",
+    quote: "“Some people climb ladders to look down. Others just soar.”",
+    body: "For people who stopped needing an audience long ago. The confidence is in the humility.",
+    reachForIt: "The meeting where you say less and land more, or the morning that's just yours.",
+    profile: "Refined Woody · Warm Amber · Cashmere",
     notes: ["Iris", "Smoked Lavender", "Cedarwood", "Mysore Sandalwood", "Skin Musk"],
     families: ["Woody", "Amber"],
     volume: "50ml",
@@ -92,7 +95,7 @@ export const PRODUCTS: Product[] = [
       meesho: MARKETS.meesho.url,
     },
     status: "approved-brand-book",
-    source: "Brand Book (Persona Architecture & Persona Details)",
+    source: "4. The Four Flexes & 5. The Collection",
   },
   {
     slug: "silk-smoke",
@@ -101,12 +104,13 @@ export const PRODUCTS: Product[] = [
     name: "Silk & Smoke",
     role: "The Bold Roots",
     summary:
-      "Heritage worn loud. Your language, your block, your roots as the sharpest thing in the room.",
+      "Your roots aren't what you hide. They're what make you, you. Heritage worn loud.",
     oneLiner:
-      "Heritage worn loud. Your language, your block, your roots as the sharpest thing in the room.",
-    quote: "“Your roots aren’t what you soften. They’re what you lead with.”",
-    body: "Silk & Smoke is for the ones whose accent gets louder in rooms that expect them to shrink. Your language, your city, your block—worn as the most self-assured thing about you. No translation needed. No apology attached.",
-    profile: "Spicy / Smoky / Rich Leather",
+      "For those whose accent gets louder in rooms that expect them to shrink.",
+    quote: "“Your roots aren't what you hide. They're what make you, you.”",
+    body: "For those whose accent gets louder in rooms that expect them to shrink.",
+    reachForIt: "Family tables, loud nights, any room that needs to hear your mother tongue.",
+    profile: "Spicy · Smoky · Rich Leather",
     notes: ["Saffron", "Damask Rose", "Leather", "Smoked Oud", "Dark Vanilla"],
     families: ["Spicy", "Woody"],
     volume: "50ml",
@@ -121,7 +125,7 @@ export const PRODUCTS: Product[] = [
       meesho: MARKETS.meesho.url,
     },
     status: "approved-brand-book",
-    source: "Brand Book (Persona Architecture & Persona Details)",
+    source: "4. The Four Flexes & 5. The Collection",
   },
   {
     slug: "heartthrob",
@@ -130,12 +134,13 @@ export const PRODUCTS: Product[] = [
     name: "Heartthrob",
     role: "The Open Heart",
     summary:
-      "Flex through feeling. Loving fully and showing up completely without apologizing for it.",
+      "Feeling everything, fully. For the ones who love loudly and mean it.",
     oneLiner:
-      "Flex through feeling. Loving fully and showing up completely without apologizing for it.",
-    quote: "“Feeling everything, fully, is its own kind of top-class.”",
-    body: "Heartthrob is for the ones who love loudly and mean it—who show up fully instead of playing it cool. The flex here isn't distance; it's devotion. Warm, unguarded, all-in.",
-    profile: "Warm Amber / Luminous Floral / Gourmand",
+      "For the ones who love loudly and mean it. Protecting yourself isn't safe; it's fearful.",
+    quote: "“Feeling everything, fully.”",
+    body: "For the ones who love loudly and mean it. Protecting yourself isn't safe; it's fearful.",
+    reachForIt: "First dates, last-minute flights, the \"I love you\" you said first.",
+    profile: "Warm Amber · Luminous Floral · Gourmand",
     notes: ["Mandarin", "Honey", "Jasmine Blossom", "Golden Amber", "Whipped Vanilla"],
     families: ["Amber", "Floral", "Gourmand"],
     volume: "50ml",
@@ -150,13 +155,15 @@ export const PRODUCTS: Product[] = [
       meesho: MARKETS.meesho.url,
     },
     status: "approved-brand-book",
-    source: "Brand Book (Persona Architecture & Persona Details)",
+    source: "4. The Four Flexes & 5. The Collection",
   },
 ];
 
 export function getProduct(slug: string): Product | undefined {
   return PRODUCTS.find((p) => p.slug === slug);
 }
+
+export const getProductBySlug = getProduct;
 
 export function getAdjacentProducts(slug: string): { prev: Product; next: Product } {
   const index = PRODUCTS.findIndex((p) => p.slug === slug);

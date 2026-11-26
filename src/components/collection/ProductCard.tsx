@@ -169,7 +169,7 @@ export function ProductCard({
           href={`/scent/${product.slug}`}
           className={`w-full py-3 px-4 bg-ink text-cream text-xs font-sans font-semibold uppercase tracking-wider text-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold ${hoverColorClasses[product.color]}`}
         >
-          Discover {product.name}
+          Make It Yours
         </Link>
 
         {/* Secondary Marketplace Logo Chips under "AVAILABLE ON" */}

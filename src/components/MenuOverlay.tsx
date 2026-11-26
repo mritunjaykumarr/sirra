@@ -18,7 +18,7 @@ export interface MenuOverlayProps {
   triggerRef?: React.RefObject<HTMLElement | null>;
 }
 
-type PreviewKey = "default" | "name" | "flexes" | "collection" | "buy";
+type PreviewKey = "default" | "about" | "name" | "flexes" | "collection" | "buy";
 
 interface MenuItem {
   title: string;
@@ -29,6 +29,13 @@ interface MenuItem {
 }
 
 const MENU_ITEMS: MenuItem[] = [
+  {
+    title: "About Us",
+    label: "WHO WE ARE",
+    href: "/about",
+    preview: "about",
+    isAnchor: false,
+  },
   {
     title: "The name",
     label: "WHERE IT COMES FROM",
@@ -558,6 +565,25 @@ export function MenuOverlay({
               <Image
                 src={IMAGES["hero-mist"].src}
                 alt={IMAGES["hero-mist"].alt}
+                fill
+                quality={90}
+                sizes="320px"
+                className="object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-ink/25" />
+            </div>
+
+            {/* 1b. About Us: cover-portrait */}
+            <div
+              className={`absolute inset-0 transition-all duration-600 ease-out ${
+                hoveredPreview === "about"
+                  ? "opacity-100 scale-100"
+                  : "opacity-0 scale-106 pointer-events-none"
+              }`}
+            >
+              <Image
+                src={IMAGES["cover-portrait"].src}
+                alt={IMAGES["cover-portrait"].alt}
                 fill
                 quality={90}
                 sizes="320px"

@@ -57,7 +57,7 @@ export function HeroFragranceSection() {
   const videoTextBlockRef = useRef<HTMLDivElement>(null);
 
   const heroVideo = HERO_DATA.video?.src;
-  const taglineWords = COPY.hero.tagline.replace(/^“|”$/g, "").split(" ");
+  const taglineWords = (COPY.hero.headline || "You're already the peak.").split(" ");
 
   // Shared horizontal gradient blend masks for legacy 4-panel split
   const desktopMaskStyles = [
@@ -739,7 +739,7 @@ export function HeroFragranceSection() {
 
             {/* Cormorant Italic Gold Tagline with masked word reveal: clamp(40px, 5.2vw, 88px) */}
             <h1
-              className="font-display italic text-gold text-[clamp(40px,5.2vw,88px)] leading-[1.08] text-center max-w-5xl mx-auto my-2 sm:my-3.5 flex items-center justify-center flex-wrap"
+              className="font-display italic text-gold text-[clamp(38px,5.2vw,84px)] leading-[1.08] text-center max-w-5xl mx-auto my-2 sm:my-3 flex items-center justify-center flex-wrap"
               style={{ textShadow: "0 2px 18px rgba(20,19,18,0.85)" }}
             >
               {taglineWords.map((word, wIdx) => (
@@ -751,8 +751,16 @@ export function HeroFragranceSection() {
               ))}
             </h1>
 
-            {/* Button: Discover the collection */}
-            <div className="hero-video-fade-item flex flex-col items-center pointer-events-auto mt-2 sm:mt-3">
+            {/* Subhead: Sirra is a fragrance for people who don't need to become anyone. */}
+            <p
+              className="hero-video-fade-item font-sans text-xs sm:text-sm md:text-base text-cream/90 max-w-xl mx-auto mb-3 sm:mb-5 font-normal tracking-wide px-4"
+              style={{ textShadow: "0 2px 10px rgba(20,19,18,0.9)" }}
+            >
+              {COPY.hero.subhead}
+            </p>
+
+            {/* Buttons: [ Find Your Sirra ] [ Read the Story ] */}
+            <div className="hero-video-fade-item flex items-center justify-center gap-3 sm:gap-4 pointer-events-auto mt-1 sm:mt-2">
               <a
                 ref={buttonRef}
                 href="#scents"
@@ -760,14 +768,21 @@ export function HeroFragranceSection() {
                 onMouseMove={handleButtonMouseMove}
                 onMouseLeave={handleButtonMouseLeave}
                 onMouseEnter={handleButtonMouseEnter}
-                className="group relative inline-flex items-center justify-center px-8 sm:px-10 py-3.5 sm:py-4 bg-gold text-ink font-sans font-bold text-xs sm:text-sm uppercase tracking-[0.2em] rounded-none overflow-hidden transition-colors duration-300 hover:bg-[#EBB43F] shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                className="group relative inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 bg-gold text-ink font-sans font-bold text-xs sm:text-sm uppercase tracking-[0.2em] rounded-none overflow-hidden transition-colors duration-300 hover:bg-[#EBB43F] shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               >
                 <div
                   ref={btnSweepRef}
                   aria-hidden="true"
                   className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none -skew-x-20 -translate-x-[200%]"
                 />
-                <span className="relative z-10 pointer-events-none">Discover the collection</span>
+                <span className="relative z-10 pointer-events-none">{COPY.hero.findYourSirra}</span>
+              </a>
+
+              <a
+                href="/about"
+                className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-3.5 bg-transparent text-cream border border-cream/50 font-sans font-bold text-xs sm:text-sm uppercase tracking-[0.2em] transition-all duration-300 hover:bg-cream hover:text-ink hover:border-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold backdrop-blur-xs"
+              >
+                {COPY.hero.readTheStory}
               </a>
             </div>
 

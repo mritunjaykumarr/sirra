@@ -218,32 +218,45 @@ export function RangeStorySection() {
         className="relative w-full min-[900px]:h-[100svh] min-[900px]:overflow-hidden flex flex-col items-center justify-center px-6 py-20 min-[900px]:py-0 z-20"
       >
         <div className="w-full max-w-4xl min-[900px]:grid min-[900px]:grid-cols-1 min-[900px]:grid-rows-1 min-[900px]:place-items-center">
-          {/* Beat 1 */}
-          <div className="range-story-beat range-beat-1 min-[900px]:col-start-1 min-[900px]:row-start-1 w-full flex flex-col items-center text-center gap-6 mb-16 min-[900px]:mb-0">
+          {/* Beat 1: The Word */}
+          <div className="range-story-beat range-beat-1 min-[900px]:col-start-1 min-[900px]:row-start-1 w-full flex flex-col items-center text-center gap-5 mb-16 min-[900px]:mb-0">
+            <span className="font-sans text-[11px] uppercase tracking-[0.25em] text-rust font-bold">
+              {rangeStory.chapter1.tag}
+            </span>
             <h2 className="font-display italic text-3xl sm:text-4xl md:text-6xl text-cream leading-tight">
-              {rangeStory.beat1.line1}
+              {rangeStory.chapter1.headline}
             </h2>
             <div className="w-16 h-[1px] bg-gold/60" />
-            <p className="font-sans text-base sm:text-lg md:text-2xl text-cream/80 max-w-2xl font-light leading-relaxed">
-              {rangeStory.beat1.line2}
+            <p className="font-sans text-base sm:text-lg md:text-xl text-cream/80 max-w-2xl font-light leading-relaxed whitespace-pre-line">
+              {rangeStory.chapter1.body}
             </p>
           </div>
 
-          {/* Beat 2 */}
-          <div className="range-story-beat range-beat-2 min-[900px]:col-start-1 min-[900px]:row-start-1 w-full flex flex-col items-center text-center gap-6 mb-16 min-[900px]:mb-0">
+          {/* Beat 2: The Problem */}
+          <div className="range-story-beat range-beat-2 min-[900px]:col-start-1 min-[900px]:row-start-1 w-full flex flex-col items-center text-center gap-5 mb-16 min-[900px]:mb-0">
+            <span className="font-sans text-[11px] uppercase tracking-[0.25em] text-rust font-bold">
+              {rangeStory.chapter2.tag}
+            </span>
             <h2 className="font-display italic text-3xl sm:text-4xl md:text-6xl text-cream leading-tight">
-              {rangeStory.beat2.line1}
+              {rangeStory.chapter2.headline}
             </h2>
             <div className="w-16 h-[1px] bg-gold/60" />
-            <p className="font-display text-2xl sm:text-3xl md:text-5xl text-gold font-light leading-snug">
-              {rangeStory.beat2.line2}
+            <p className="font-display text-2xl sm:text-3xl md:text-4xl text-gold font-light leading-snug max-w-2xl">
+              {rangeStory.chapter2.body}
             </p>
           </div>
 
-          {/* Beat 3 */}
-          <div className="range-story-beat range-beat-3 min-[900px]:col-start-1 min-[900px]:row-start-1 w-full flex flex-col items-center text-center gap-6">
-            <p className="font-display italic text-2xl sm:text-3xl md:text-5xl text-cream/90 max-w-3xl leading-snug">
-              “{rangeStory.beat3.text.replace(/^“|”$/g, "")}”
+          {/* Beat 3: The Turn */}
+          <div className="range-story-beat range-beat-3 min-[900px]:col-start-1 min-[900px]:row-start-1 w-full flex flex-col items-center text-center gap-5">
+            <span className="font-sans text-[11px] uppercase tracking-[0.25em] text-rust font-bold">
+              {rangeStory.chapter3.tag}
+            </span>
+            <h2 className="font-display italic text-3xl sm:text-4xl md:text-6xl text-cream leading-tight">
+              {rangeStory.chapter3.headline}
+            </h2>
+            <div className="w-16 h-[1px] bg-gold/60" />
+            <p className="font-sans text-lg sm:text-xl md:text-2xl text-cream/90 max-w-2xl leading-relaxed font-light">
+              It doesn&apos;t add a persona. It names what&apos;s already there.
             </p>
           </div>
         </div>
@@ -258,14 +271,25 @@ export function RangeStorySection() {
         className="range-story-beat range-beat-5 relative z-20 w-full py-20 md:py-32 px-5 md:px-10 border-t border-cream/10"
       >
         <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16 items-center">
-          {/* Headline & Rust Baseline (Col 1 to 7) */}
-          <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left">
-            <h2 className="font-sans font-extrabold uppercase text-cream tracking-tight leading-none text-[clamp(44px,7.5vw,110px)] select-none">
-              {rangeStory.beat5.headline}
+          {/* Headline & Action Button (Col 1 to 7) */}
+          <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left gap-6">
+            <span className="font-sans text-[11px] uppercase tracking-[0.25em] text-rust font-bold">
+              THE TURN
+            </span>
+            <h2 className="font-sans font-extrabold uppercase text-cream tracking-tight leading-[1.08] text-[clamp(32px,5.5vw,72px)] select-none">
+              You don&apos;t wear Sirra to become the top.
             </h2>
-            <p className="font-display italic text-rust text-[clamp(36px,5.5vw,84px)] mt-4 leading-tight">
-              {rangeStory.beat5.baseline}
+            <p className="font-display italic text-gold text-[clamp(28px,4.5vw,60px)] leading-tight">
+              You wear it because you already are.
             </p>
+            <div className="pt-2">
+              <a
+                href={rangeStory.chapter3.actionHref}
+                className="inline-flex items-center justify-center px-8 py-3.5 bg-gold text-ink font-sans font-bold text-xs uppercase tracking-[0.2em] hover:bg-[#EBB43F] transition-colors shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+              >
+                {rangeStory.chapter3.action} &rarr;
+              </a>
+            </div>
           </div>
 
           {/* Voice Portrait (Col 8 to 12): Beside on desktop, below on mobile */}

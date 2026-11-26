@@ -146,6 +146,16 @@ export function ScentHero({ product }: ScentHeroProps) {
           <p className="hero-rise-item font-sans text-[17px] text-cream/80 leading-relaxed max-w-[60ch] mt-2 font-normal">
             {product.body}
           </p>
+
+          {/* 8. Reach for it occasion */}
+          {product.reachForIt && (
+            <div className="hero-rise-item mt-4 pt-3 border-t border-cream/15 flex items-start gap-2.5 text-sm sm:text-base text-cream/85">
+              <span className="font-sans font-semibold uppercase tracking-wider text-xs text-cream/60 shrink-0 pt-0.5">
+                Reach for it:
+              </span>
+              <span className="font-display italic text-cream">{product.reachForIt}</span>
+            </div>
+          )}
         </div>
 
         {/* Right Half: Media with VideoSlot */}
