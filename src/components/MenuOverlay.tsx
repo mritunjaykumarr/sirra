@@ -44,8 +44,8 @@ const MENU_ITEMS: MenuItem[] = [
     isAnchor: true,
   },
   {
-    title: "Four flexes",
-    label: "ONE IDEA · FOUR FLEXES",
+    title: "Four persona’s",
+    label: "FOUR PERSONAS",
     href: "/#scents",
     preview: "flexes",
     isAnchor: true,
@@ -592,7 +592,7 @@ export function MenuOverlay({
               <div className="absolute inset-0 bg-ink/25" />
             </div>
 
-            {/* 2. The Name: name-stone */}
+            {/* 2. The Name: truth-spray */}
             <div
               className={`absolute inset-0 flex items-center justify-center p-8 transition-all duration-600 ease-out ${
                 hoveredPreview === "name"
@@ -602,8 +602,8 @@ export function MenuOverlay({
             >
               <div className="relative w-full max-w-[280px] aspect-[4/5] overflow-hidden shadow-2xl">
                 <Image
-                  src={IMAGES["name-stone"].src}
-                  alt={IMAGES["name-stone"].alt}
+                  src={IMAGES["truth-spray"].src}
+                  alt={IMAGES["truth-spray"].alt}
                   fill
                   quality={90}
                   sizes="280px"

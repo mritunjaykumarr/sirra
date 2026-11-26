@@ -1,20 +1,16 @@
 "use client";
 
 import React, { useRef } from "react";
-import Image from "next/image";
 import Tag from "@/components/ui/Tag";
 import Label from "@/components/ui/Label";
 import Section from "@/components/ui/Section";
-import { COPY, IMAGES } from "@/content";
-import { useGsap, fadeUp, maskReveal } from "@/lib/motion";
+import { COPY } from "@/content";
+import { useGsap, fadeUp } from "@/lib/motion";
 
 export function NameSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
   const centerColRef = useRef<HTMLDivElement>(null);
-  const stoneImageRef = useRef<HTMLDivElement>(null);
-
-  const stone = IMAGES["name-stone"];
 
   useGsap(() => {
     if (leftColRef.current) {
@@ -22,9 +18,6 @@ export function NameSection() {
     }
     if (centerColRef.current) {
       fadeUp(centerColRef.current, { start: "top 75%", delay: 0.15 });
-    }
-    if (stoneImageRef.current) {
-      maskReveal(stoneImageRef.current, { start: "top 75%" });
     }
   }, [], sectionRef);
 
@@ -57,10 +50,10 @@ export function NameSection() {
           </p>
         </div>
 
-        {/* Column 2: Ink Column (Desktop: 4 cols, Center) */}
+        {/* Column 2: Ink Column (Desktop: 7 cols, Right) */}
         <div
           ref={centerColRef}
-          className="md:col-span-4 bg-ink text-cream p-8 sm:p-10 lg:p-12 flex flex-col justify-center relative z-10 shadow-lg border border-ink/20"
+          className="md:col-span-7 bg-ink text-cream p-8 sm:p-10 lg:p-14 flex flex-col justify-center relative z-10 shadow-lg border border-ink/20"
         >
           <p className="font-sans text-sm sm:text-base text-cream/90 leading-relaxed font-normal">
             {COPY.name.definition}
@@ -71,25 +64,6 @@ export function NameSection() {
           <p className="font-display italic text-gold text-lg sm:text-xl lg:text-2xl leading-snug">
             {COPY.name.goldLines}
           </p>
-        </div>
-
-        {/* Column 3: Stone Image Column (Desktop: 3 cols, Right) */}
-        <div className="md:col-span-3 flex items-center justify-center">
-          <div
-            ref={stoneImageRef}
-            className="relative w-full max-w-[420px] md:max-w-none h-[480px] sm:h-[540px] md:h-full min-h-[500px] overflow-hidden shadow-xs bg-ink/10"
-          >
-            <Image
-              src={stone.src}
-              alt={stone.alt}
-              fill
-              placeholder="blur"
-              blurDataURL={stone.blurDataURL}
-              quality={90}
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 30vw, 360px"
-              className="object-cover object-center"
-            />
-          </div>
         </div>
       </div>
     </Section>
