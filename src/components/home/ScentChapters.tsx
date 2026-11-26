@@ -698,11 +698,11 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
           <div>
             <div className="mb-3">
               <Tag color="rust">
-                {COPY.fourFlexes?.eyebrow || COPY.personaArchitecture?.heading || "ONE BELIEF · FOUR WAYS TO CARRY IT"}
+                {COPY.fourFlexes?.eyebrow || COPY.personaArchitecture?.heading || "FOUR PERSONAS"}
               </Tag>
             </div>
             <h2 className="font-display text-[clamp(36px,4.5vw,68px)] text-ink leading-tight">
-              {COPY.fourFlexes?.headline || "Pick the one that sounds like you."}
+              {COPY.fourFlexes?.headline || "You’ll find yourself in one of these"}
             </h2>
           </div>
           <p className="font-sans text-xs md:text-sm text-ink/75 max-w-xl leading-relaxed uppercase tracking-wider font-medium">

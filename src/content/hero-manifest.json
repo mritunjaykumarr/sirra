@@ -2,7 +2,7 @@
   "mode": "video",
   "image": null,
   "video": {
-    "src": "/video/hero.mp4",
+    "src": "/video/25_Reel.mp4",
     "webm": "/video/hero.webm",
     "mobile": "/video/hero-mobile.webm",
     "mobileMp4": "/video/hero-mobile.mp4",
@@ -10,7 +10,7 @@
     "poster": "/video/hero-poster.jpg",
     "hasPoster": true,
     "sizes": {
-      "mp4": 14855745,
+      "mp4": 78948146,
       "webm": 13439875,
       "mobileWebm": 13046804,
       "mobileMp4": 20171330,

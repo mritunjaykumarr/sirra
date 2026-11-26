@@ -83,8 +83,8 @@ export const COPY = {
       text: "Confidence isn't something you earn later. People who don't chase, attract. They don't postpone life until they \"deserve\" better. They choose the best for themselves, now.",
     },
     whoItsFor: {
-      heading: "Who it's for",
-      subhead: "You'll know yourself in one of these:",
+      heading: "Four personas",
+      subhead: "You’ll find yourself in one of these",
       personas: [
         {
           title: "The wanderer",
@@ -138,14 +138,14 @@ export const COPY = {
   },
   fourFlexes: {
     status: "approved-brand-book" as CopyStatus,
-    source: "4. The Four Flexes: Personality & Use Case",
-    eyebrow: "ONE BELIEF · FOUR WAYS TO CARRY IT",
-    headline: "Pick the one that sounds like you.",
+    source: "4. The Four Personas: Personality & Use Case",
+    eyebrow: "FOUR PERSONAS",
+    headline: "You’ll find yourself in one of these",
     subhead: "Every SIRRA scent is a different route to the same place: your own top-class. None outranks another.",
   },
   personaArchitecture: {
-    heading: "ONE BELIEF · FOUR WAYS TO CARRY IT",
-    intro: "Pick the one that sounds like you.",
+    heading: "FOUR PERSONAS",
+    intro: "You’ll find yourself in one of these",
     subhead: "Every SIRRA scent is a different route to the same place: your own top-class. None outranks another.",
   },
   collection: {

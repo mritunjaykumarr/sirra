@@ -687,14 +687,12 @@ export function HeroFragranceSection() {
               poster="/video/hero-poster.jpg"
               className="absolute inset-0 w-full h-full object-cover object-center"
             >
-              {/* Phone / Mobile portrait: hero-mobile.webm */}
-              <source src="/video/hero-mobile.webm" type="video/webm" media="(max-width: 768px), (orientation: portrait)" />
+              {/* 25_Reel Hero Video */}
+              <source src="/video/25_Reel.mp4" type="video/mp4" />
+              <source src="/25_Reel.mp4" type="video/mp4" />
+              {/* Fallback sources */}
               <source src="/video/hero-mobile.mp4" type="video/mp4" media="(max-width: 768px), (orientation: portrait)" />
-
-              {/* Desktop: hero.mp4 */}
               <source src="/video/hero.mp4" type="video/mp4" />
-              <source src="/video/hero.webm" type="video/webm" />
-              <source src="/video/videoplayback.mp4" type="video/mp4" />
             </video>
           </div>
 

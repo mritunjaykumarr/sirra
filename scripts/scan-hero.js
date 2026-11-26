@@ -105,7 +105,7 @@ async function scanHero() {
 
   // 4. Scan Hero Video Files & Poster in public/video/
   let heroVideo = null;
-  const heroMp4 = videoFiles.find((f) => f.toLowerCase() === "hero.mp4") || videoFiles.find((f) => f.toLowerCase() === "videoplayback.mp4");
+  const heroMp4 = videoFiles.find((f) => f.toLowerCase() === "25_reel.mp4") || videoFiles.find((f) => f.toLowerCase() === "hero.mp4") || videoFiles.find((f) => f.toLowerCase() === "videoplayback.mp4");
   const heroWebm = videoFiles.find((f) => f.toLowerCase() === "hero.webm");
   const heroMobileMp4 = videoFiles.find((f) => f.toLowerCase() === "hero-mobile.mp4");
   const heroMobileWebm = videoFiles.find((f) => f.toLowerCase() === "hero-mobile.webm");

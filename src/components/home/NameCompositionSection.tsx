@@ -1,24 +1,19 @@
 "use client";
 
 import React, { useRef, useEffect, useCallback } from "react";
-import Image from "next/image";
 import Label from "@/components/ui/Label";
 import Section from "@/components/ui/Section";
-import { COPY, IMAGES } from "@/content";
-import { useGsap, fadeUp, maskReveal, isReducedMotion } from "@/lib/motion";
+import { COPY } from "@/content";
+import { useGsap, fadeUp, isReducedMotion } from "@/lib/motion";
 import gsap from "gsap";
 
 export function NameCompositionSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
   const centerColRef = useRef<HTMLDivElement>(null);
-  const stoneImageRef = useRef<HTMLDivElement>(null);
-  const outlineRef = useRef<HTMLDivElement>(null);
   const goldRuleRef = useRef<HTMLDivElement>(null);
   const headingWrapperRef = useRef<HTMLDivElement>(null);
   const headingCreamRef = useRef<HTMLHeadingElement>(null);
-
-  const stone = IMAGES["name-stone"];
 
   const updateClipPath = useCallback(() => {
     if (!centerColRef.current || !headingWrapperRef.current || !headingCreamRef.current) return;
@@ -92,32 +87,6 @@ export function NameCompositionSection() {
         });
       }
     }
-
-    // Stone image keeps maskReveal and gets a 1px gold outline offset 8px fading in after reveal
-    if (stoneImageRef.current) {
-      maskReveal(stoneImageRef.current, { start: "top 75%" });
-    }
-
-    if (outlineRef.current) {
-      if (isReducedMotion()) {
-        gsap.set(outlineRef.current, { opacity: 1 });
-      } else {
-        gsap.fromTo(
-          outlineRef.current,
-          { opacity: 0 },
-          {
-            opacity: 1,
-            duration: 0.8,
-            delay: 0.7,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: stoneImageRef.current,
-              start: "top 75%",
-            },
-          }
-        );
-      }
-    }
   }, [updateClipPath], sectionRef);
 
   return (
@@ -154,10 +123,10 @@ export function NameCompositionSection() {
           </div>
         </div>
 
-        {/* Column 2: Ink Column (Desktop: 4 cols, Center) */}
+        {/* Column 2: Ink Column (Desktop: 7 cols, Right) */}
         <div
           ref={centerColRef}
-          className="md:col-span-4 bg-ink text-cream p-7 sm:p-9 lg:p-12 flex flex-col justify-center relative z-10 shadow-lg border border-ink/20"
+          className="md:col-span-7 bg-ink text-cream p-7 sm:p-9 lg:p-14 flex flex-col justify-center relative z-10 shadow-lg border border-ink/20"
         >
           <div
             ref={goldRuleRef}
@@ -167,34 +136,6 @@ export function NameCompositionSection() {
           <p className="font-display italic text-gold text-xl sm:text-2xl lg:text-3xl leading-snug">
             {COPY.name.goldLines}
           </p>
-        </div>
-
-        {/* Column 3: Stone Image Column (Desktop: 3 cols, Right) */}
-        <div className="md:col-span-3 flex items-center justify-center p-2 sm:p-3">
-          <div className="relative w-full max-w-[420px] md:max-w-none h-[420px] sm:h-[480px] md:h-full min-h-[440px]">
-            {/* 1px gold outline offset 8px that fades in after reveal */}
-            <div
-              ref={outlineRef}
-              className="absolute -inset-2 border border-gold pointer-events-none opacity-0 z-20"
-              aria-hidden="true"
-            />
-
-            <div
-              ref={stoneImageRef}
-              className="relative w-full h-full overflow-hidden shadow-xs bg-ink/10 z-10"
-            >
-              <Image
-                src={stone.src}
-                alt={stone.alt}
-                fill
-                placeholder="blur"
-                blurDataURL={stone.blurDataURL}
-                quality={90}
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 30vw, 360px"
-                className="object-cover object-center"
-              />
-            </div>
-          </div>
         </div>
       </div>
     </Section>
