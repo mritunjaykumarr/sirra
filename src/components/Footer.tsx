@@ -1,27 +1,35 @@
 "use client";
 
 import React, { useRef } from "react";
+import { usePathname } from "next/navigation";
 import Wordmark from "./ui/Wordmark";
 import OutboundLink from "./ui/OutboundLink";
 import MarketLogo from "./ui/MarketLogo";
 import { MARKETS, MarketKey, COPY } from "@/content";
-import { useGsap, fadeUpStagger } from "@/lib/motion";
+import { useGsap, fadeUpStagger, refreshScroll } from "@/lib/motion";
 
 export function Footer() {
   const currentYear = 2026;
   const marketKeys: MarketKey[] = ["amazon", "flipkart", "meesho"];
   const tilesContainerRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useGsap(() => {
     if (tilesContainerRef.current) {
       const tiles = tilesContainerRef.current.querySelectorAll(".availability-tile");
       fadeUpStagger(Array.from(tiles), {
         trigger: tilesContainerRef.current,
-        start: "top 85%",
+        start: "top 95%",
         stagger: 0.12,
       });
     }
-  }, [], tilesContainerRef);
+    const t1 = setTimeout(() => refreshScroll(), 150);
+    const t2 = setTimeout(() => refreshScroll(), 450);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [pathname], tilesContainerRef);
 
   return (
     <footer id="availability" className="bg-ink text-cream border-t border-cream/15 pt-20 md:pt-32 pb-16">

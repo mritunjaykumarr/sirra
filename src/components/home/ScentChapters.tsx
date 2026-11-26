@@ -12,10 +12,6 @@ import videoManifest from "@/content/video-manifest.json";
 import {
   useGsap,
   fadeUpStagger,
-  maskReveal,
-  parallax,
-  characterReveal,
-  strokeDraw,
   attachPointerTilt,
   attachMagnetic,
   isReducedMotion,
@@ -72,7 +68,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
     return refreshScrollOnReady();
   }, []);
 
-  // ScrollSpy fallback for mobile, tablet, or reduced motion
+  // ScrollSpy fallback for mobile, tablet, or reduced motion (viewport-relative)
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -82,13 +78,12 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
       ) {
         return;
       }
-      const scrollPos = window.scrollY + window.innerHeight * 0.45;
+      const midY = window.innerHeight * 0.45;
       for (const p of PRODUCTS) {
         const el = document.getElementById(p.slug);
         if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= midY && rect.bottom >= midY * 0.5) {
             setActiveSlug(p.slug);
             break;
           }
@@ -106,7 +101,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
     const finePointerDesktop = prefersFinePointer();
     const reduced = isReducedMotion();
 
-    // Scents rail visibility: visible only while #scents is on screen
+    // Scents rail visibility
     const railEl = railRef.current;
     if (railEl && containerRef.current) {
       ScrollTrigger.create({
@@ -141,10 +136,8 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
       });
     }
 
-    // Per-chapter reveals (responsive via matchMedia + reduced motion fallbacks)
     const mm = gsap.matchMedia();
 
-    // Common reveals & reduced-motion state
     PRODUCTS.forEach((p, i) => {
       const chapterEl = document.getElementById(p.slug);
       if (!chapterEl) return;
@@ -155,7 +148,6 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
       const rule = chapterEl.querySelector<HTMLElement>(".chapter-rule");
       const quoteRule = chapterEl.querySelector<HTMLElement>(".chapter-quote-rule");
       const quoteMark = chapterEl.querySelector<HTMLElement>(".chapter-quote-mark");
-      const quoteContainer = chapterEl.querySelector<HTMLElement>("[data-chapter-quote]");
       const quoteWords = chapterEl.querySelectorAll<HTMLElement>(".reveal-word");
       const tagEnter = chapterEl.querySelector<HTMLElement>(".chapter-tag-enter");
       const roleInner = chapterEl.querySelector<HTMLElement>(".chapter-role-inner");
@@ -191,6 +183,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
         if (quoteMark) gsap.set(quoteMark, { clipPath: "inset(0% 0% 0% 0%)", opacity: 0.9 });
         if (quoteRule) gsap.set(quoteRule, { scaleY: 1 });
         if (rule) gsap.set(rule, { scaleX: 1 });
+        if (tagEnter) gsap.set(tagEnter, { x: 0, opacity: 1 });
         if (roleInner) gsap.set(roleInner, { yPercent: 0, opacity: 1 });
         if (nameChars.length > 0) gsap.set(nameChars, { yPercent: 0, opacity: 1 });
         if (detailItems.length > 0) gsap.set(detailItems, { y: 0, opacity: 1 });
@@ -199,144 +192,162 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
         if (trailLineMobile) gsap.set(trailLineMobile, { scaleY: 1 });
         if (trailItemsMobile.length > 0) gsap.set(trailItemsMobile, { opacity: 1, x: 0 });
         if (atmosphereCircle) gsap.set(atmosphereCircle, { scale: 1 });
+        if (orbitDotEl) orbitDotEl.style.display = "none";
         return;
       }
 
-      // 1px Persona color horizontal rule
-      if (rule) {
-        gsap.fromTo(
-          rule,
-          { scaleX: 0, transformOrigin: "left center" },
-          {
-            scaleX: 1,
-            duration: 0.85,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: chapterEl,
-              start: "top 80%",
-              once: true,
-            },
-          }
-        );
-      }
-
-      // Tag slide & role masked rise
-      if (tagEnter) {
-        gsap.fromTo(
-          tagEnter,
-          { x: -18, opacity: 0 },
-          {
-            x: 0,
-            opacity: 1,
-            duration: 0.75,
-            ease: "power3.out",
-            scrollTrigger: { trigger: chapterEl, start: "top 80%", once: true },
-          }
-        );
-      }
-
-      if (roleInner) {
-        gsap.fromTo(
-          roleInner,
-          { yPercent: 105, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            duration: 0.75,
-            delay: 0.08,
-            ease: "power3.out",
-            scrollTrigger: { trigger: chapterEl, start: "top 80%", once: true },
-          }
-        );
-      }
-
-      // Quote opening mark + vertical quote rule draw-in
-      if (quoteMark) {
-        gsap.fromTo(
-          quoteMark,
-          { clipPath: "inset(0% 100% 0% 0%)", opacity: 0 },
-          {
-            clipPath: "inset(0% 0% 0% 0%)",
-            opacity: 0.9,
-            duration: 0.85,
-            delay: 0.15,
-            ease: "power3.out",
-            scrollTrigger: { trigger: chapterEl, start: "top 80%", once: true },
-          }
-        );
-      }
-
-      if (quoteRule) {
-        gsap.fromTo(
-          quoteRule,
-          { scaleY: 0 },
-          {
-            scaleY: 1,
-            duration: 0.9,
-            delay: 0.15,
-            ease: "power3.out",
-            scrollTrigger: { trigger: chapterEl, start: "top 80%", once: true },
-          }
-        );
-      }
-
-      // Paragraph and Reach For It sequential fadeUp (0.1s stagger)
-      if (detailItems.length > 0) {
-        fadeUpStagger(detailItems, {
-          trigger: chapterEl,
-          start: "top 78%",
-          stagger: 0.1,
-          duration: 0.75,
-        });
-      }
-
-      // Persona photograph reveal (clipPath 100% -> 0%, scale 1.12 -> 1, offset 1px SVG frame draw 1s)
-      if (photoClip) {
-        maskReveal(photoClip, {
-          trigger: photoClip,
-          start: "top 85%",
-          duration: 1.1,
-        });
-      }
-
-      if (photoScale) {
-        gsap.fromTo(
-          photoScale,
-          { scale: 1.12 },
-          {
-            scale: 1,
-            duration: 1.1,
-            ease: "power3.out",
-            scrollTrigger: { trigger: photoClip || chapterEl, start: "top 85%", once: true },
-          }
-        );
-      }
-
-      if (frameStroke) {
-        strokeDraw(frameStroke, {
-          trigger: photoClip || chapterEl,
-          start: "top 85%",
-          duration: 1.0,
-          fromOffset: 100,
-        });
-      }
-
-      // Desktop-only (>= 1024px) stacking choreography, scrubbed watermark, parallax, trail & fine-pointer micro-motion
+      // Desktop choreography (>= 1024px) with batched timelines (minimum ScrollTrigger overhead)
       mm.add("(min-width: 1024px)", () => {
         const floatTweens: gsap.core.Tween[] = [];
 
-        // Letter reveal for scent name (0.04s stagger from masked line boxes)
-        if (nameChars.length > 0) {
-          characterReveal(nameChars, {
+        // Active chapter tracking for SCENTS rail & rolling 01 / 04 counter
+        ScrollTrigger.create({
+          trigger: chapterEl,
+          start: "top 48%",
+          end: "bottom 48%",
+          onEnter: () => setActiveSlug(p.slug),
+          onEnterBack: () => setActiveSlug(p.slug),
+          onLeaveBack: () => {
+            if (i > 0) setActiveSlug(PRODUCTS[i - 1].slug);
+          },
+        });
+
+        // 1. Batched One-Shot Enter Timeline (Tag, Role, Name Chars, Quote Mark, Quote Rule, Paragraph/Reach, Photo Mask + Frame, Horizontal Trail)
+        const enterTl = gsap.timeline({
+          scrollTrigger: {
             trigger: chapterEl,
-            start: "top 78%",
-            stagger: 0.04,
-            duration: 0.7,
-          });
+            start: "top 90%",
+            once: true,
+          },
+        });
+
+        if (photoClip) {
+          enterTl.fromTo(
+            photoClip,
+            { clipPath: "inset(100% 0% 0% 0%)" },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: 1.1, ease: "power3.out" },
+            0
+          );
+        }
+        if (photoScale) {
+          enterTl.fromTo(
+            photoScale,
+            { scale: 1.12 },
+            { scale: 1, duration: 1.1, ease: "power3.out" },
+            0
+          );
+        }
+        if (frameStroke) {
+          enterTl.fromTo(
+            frameStroke,
+            { strokeDashoffset: 100 },
+            { strokeDashoffset: 0, duration: 1.0, ease: "power2.out" },
+            0.05
+          );
+        }
+        if (tagEnter) {
+          enterTl.fromTo(
+            tagEnter,
+            { x: -18, opacity: 0 },
+            { x: 0, opacity: 1, duration: 0.7, ease: "power3.out" },
+            0
+          );
+        }
+        if (roleInner) {
+          enterTl.fromTo(
+            roleInner,
+            { yPercent: 105, opacity: 0 },
+            { yPercent: 0, opacity: 1, duration: 0.7, ease: "power3.out" },
+            0.06
+          );
+        }
+        if (nameChars.length > 0) {
+          enterTl.fromTo(
+            nameChars,
+            { yPercent: 110, opacity: 0 },
+            { yPercent: 0, opacity: 1, duration: 0.65, stagger: 0.04, ease: "power3.out" },
+            0.08
+          );
+        }
+        if (quoteMark) {
+          enterTl.fromTo(
+            quoteMark,
+            { clipPath: "inset(0% 100% 0% 0%)", opacity: 0 },
+            { clipPath: "inset(0% 0% 0% 0%)", opacity: 0.9, duration: 0.8, ease: "power3.out" },
+            0.12
+          );
+        }
+        if (quoteRule) {
+          enterTl.fromTo(
+            quoteRule,
+            { scaleY: 0 },
+            { scaleY: 1, duration: 0.85, ease: "power3.out" },
+            0.12
+          );
+        }
+        if (detailItems.length > 0) {
+          enterTl.fromTo(
+            detailItems,
+            { y: 18, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power3.out" },
+            0.14
+          );
+        }
+        if (rule) {
+          enterTl.fromTo(
+            rule,
+            { scaleX: 0, transformOrigin: "left center" },
+            { scaleX: 1, duration: 0.8, ease: "power3.out" },
+            0.18
+          );
+        }
+        if (trailLineDesktop) {
+          enterTl.fromTo(
+            trailLineDesktop,
+            { scaleX: 0 },
+            { scaleX: 1, duration: 0.72, ease: "power2.out" },
+            0.22
+          );
+        }
+        if (trailItemsDesktop.length > 0) {
+          enterTl.fromTo(
+            trailItemsDesktop,
+            { opacity: 0, y: 8, scale: 0.92 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.4, stagger: 0.12, ease: "power3.out" },
+            0.28
+          );
         }
 
-        // Scrubbed quote word reveal (15% -> 100% over short range so full opacity is reached before held sticky state)
-        if (quoteWords.length > 0 && quoteContainer) {
+        // 2. Scrubbed Enter Motion (Quote Word Reveal 15->100%, Plate Scale 0.94->1, Photo -24->0, Watermark Enter Fade+Drift)
+        const enterScrubTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: chapterEl,
+            start: "top bottom",
+            end: "top top",
+            scrub: true,
+          },
+        });
+
+        if (wmOuter) {
+          enterScrubTl.fromTo(wmOuter, { opacity: 0 }, { opacity: 1, ease: "none" }, 0);
+        }
+        if (wmInner) {
+          enterScrubTl.fromTo(
+            wmInner,
+            { xPercent: 12.5, opacity: 0.06 },
+            { xPercent: 0, opacity: 0.1, ease: "none" },
+            0
+          );
+        }
+        if (packPlateScroll) {
+          enterScrubTl.fromTo(packPlateScroll, { scale: 0.94 }, { scale: 1, ease: "none" }, 0);
+        }
+        if (photoScroll) {
+          enterScrubTl.fromTo(photoScroll, { y: -24 }, { y: 0, ease: "none" }, 0);
+        }
+
+        // Short scroll range for quote word reveal so full opacity completes cleanly before center hold
+        if (quoteWords.length > 0) {
           gsap.fromTo(
             quoteWords,
             { opacity: 0.15 },
@@ -346,154 +357,34 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
               ease: "none",
               scrollTrigger: {
                 trigger: chapterEl,
-                start: "top 85%",
-                end: "top 25%",
+                start: "top 92%",
+                end: "top 45%",
                 scrub: true,
               },
             }
           );
         }
 
-        // Horizontal Scent Trail line + 0.12s staggered notes
-        if (trailLineDesktop) {
-          const trailTl = gsap.timeline({
-            scrollTrigger: {
-              trigger: chapterEl,
-              start: "top 72%",
-              once: true,
-            },
-          });
-          trailTl.fromTo(
-            trailLineDesktop,
-            { scaleX: 0 },
-            { scaleX: 1, duration: 0.72, ease: "power2.out" },
-            0
-          );
-          if (trailItemsDesktop.length > 0) {
-            trailTl.fromTo(
-              trailItemsDesktop,
-              { opacity: 0, y: 8, scale: 0.92 },
-              {
-                opacity: 1,
-                y: 0,
-                scale: 1,
-                duration: 0.45,
-                stagger: 0.12,
-                ease: "power3.out",
-              },
-              0.08
-            );
-          }
-        }
-
-        // Flat large circle (5% opacity) scaling 0.9 -> 1.1 on scroll
+        // 3. Continuous Subtle Scrub Parallax & Flat Circle Scale (full traversal)
+        const parallaxScrubTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: chapterEl,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
         if (atmosphereCircle) {
-          gsap.fromTo(
-            atmosphereCircle,
-            { scale: 0.9 },
-            {
-              scale: 1.1,
-              ease: "none",
-              scrollTrigger: {
-                trigger: chapterEl,
-                start: "top bottom",
-                end: "bottom top",
-                scrub: true,
-              },
-            }
-          );
+          parallaxScrubTl.fromTo(atmosphereCircle, { scale: 0.9 }, { scale: 1.1, ease: "none" }, 0);
         }
-
-        // Giant numeral parallax (0.05)
         if (numeralEl) {
-          parallax(numeralEl, 0.05, {
-            trigger: chapterEl,
-            start: "top bottom",
-            end: "bottom top",
-          });
+          parallaxScrubTl.fromTo(numeralEl, { y: -5 }, { y: 5, ease: "none" }, 0);
+        }
+        if (photoParallax) {
+          parallaxScrubTl.fromTo(photoParallax, { y: -6 }, { y: 6, ease: "none" }, 0);
         }
 
-        // Scroll-linked plate scale (0.94 -> 1) and photo opposite direction (up to 24px) on enter
-        if (packPlateScroll) {
-          gsap.fromTo(
-            packPlateScroll,
-            { scale: 0.94 },
-            {
-              scale: 1,
-              ease: "none",
-              scrollTrigger: {
-                trigger: chapterEl,
-                start: "top bottom",
-                end: "top top",
-                scrub: true,
-              },
-            }
-          );
-        }
-
-        if (photoScroll) {
-          gsap.fromTo(
-            photoScroll,
-            { y: -24 },
-            {
-              y: 0,
-              ease: "none",
-              scrollTrigger: {
-                trigger: chapterEl,
-                start: "top bottom",
-                end: "top top",
-                scrub: true,
-              },
-            }
-          );
-        }
-
-        // Persona photograph inner scrubbed parallax (0.06)
-        if (photoParallax && photoClip) {
-          parallax(photoParallax, 0.06, {
-            trigger: chapterEl,
-            start: "top bottom",
-            end: "bottom top",
-          });
-        }
-
-        // Quiet watermark: fades in 0 -> 1 on outer wrapper, peaks at 10% (0.10) middle from 0.06, fades to 0 on exit, ~25% drift
-        if (wmOuter) {
-          gsap.fromTo(
-            wmOuter,
-            { opacity: 0 },
-            {
-              opacity: 1,
-              ease: "none",
-              scrollTrigger: {
-                trigger: chapterEl,
-                start: "top bottom",
-                end: "top 15%",
-                scrub: true,
-              },
-            }
-          );
-        }
-
-        if (wmInner) {
-          gsap.fromTo(
-            wmInner,
-            { xPercent: 12.5, opacity: 0.06 },
-            {
-              xPercent: 0,
-              opacity: 0.1,
-              ease: "none",
-              scrollTrigger: {
-                trigger: chapterEl,
-                start: "top bottom",
-                end: "top top",
-                scrub: true,
-              },
-            }
-          );
-        }
-
-        // Will-change active chapter scoping + Curtain transitions
+        // 4. Scoped will-change for active chapter only
         const currentContent = chapterEl.querySelector<HTMLElement>(".chapter-content");
         const currentOverlay = chapterEl.querySelector<HTMLElement>(".chapter-curtain-overlay");
 
@@ -509,139 +400,67 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
           },
         });
 
+        // 5. Stacking Exit Transition + Watermark Fade-Out
         if (i < PRODUCTS.length - 1) {
           const nextProduct = PRODUCTS[i + 1];
           const nextChapterEl = document.getElementById(nextProduct.slug);
           if (nextChapterEl) {
+            const exitTl = gsap.timeline({
+              scrollTrigger: {
+                trigger: nextChapterEl,
+                start: "top bottom",
+                end: "top top",
+                scrub: true,
+              },
+            });
             if (wmExit) {
-              gsap.fromTo(
-                wmExit,
-                { opacity: 1 },
-                {
-                  opacity: 0,
-                  ease: "none",
-                  scrollTrigger: {
-                    trigger: nextChapterEl,
-                    start: "top bottom",
-                    end: "top top",
-                    scrub: true,
-                  },
-                }
-              );
+              exitTl.fromTo(wmExit, { opacity: 1 }, { opacity: 0, ease: "none" }, 0);
             }
             if (wmInner) {
-              gsap.fromTo(
+              exitTl.fromTo(
                 wmInner,
                 { xPercent: 0, opacity: 0.1 },
-                {
-                  xPercent: -12.5,
-                  opacity: 0.06,
-                  ease: "none",
-                  immediateRender: false,
-                  scrollTrigger: {
-                    trigger: nextChapterEl,
-                    start: "top bottom",
-                    end: "top top",
-                    scrub: true,
-                  },
-                }
+                { xPercent: -12.5, opacity: 0.06, ease: "none", immediateRender: false },
+                0
               );
             }
-
-            if (currentContent && currentOverlay) {
-              gsap.to(currentContent, {
-                scale: 0.94,
-                opacity: 0.4,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: nextChapterEl,
-                  start: "top bottom",
-                  end: "top top",
-                  scrub: true,
-                },
-              });
-
-              gsap.to(currentOverlay, {
-                opacity: 0.3,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: nextChapterEl,
-                  start: "top bottom",
-                  end: "top top",
-                  scrub: true,
-                },
-              });
+            if (currentContent) {
+              exitTl.to(currentContent, { scale: 0.94, opacity: 0.4, ease: "none" }, 0);
             }
-
-            // Incoming chapter clip-path inset(8%) to inset(0%) and translate 60px to 0
-            gsap.fromTo(
+            if (currentOverlay) {
+              exitTl.to(currentOverlay, { opacity: 0.3, ease: "none" }, 0);
+            }
+            exitTl.fromTo(
               nextChapterEl,
-              {
-                clipPath: "inset(8% 0% 0% 0%)",
-                y: 60,
-              },
-              {
-                clipPath: "inset(0% 0% 0% 0%)",
-                y: 0,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: nextChapterEl,
-                  start: "top bottom",
-                  end: "top top",
-                  scrub: true,
-                  onUpdate: (self) => {
-                    if (self.isActive) {
-                      if (self.progress >= 0.5) {
-                        setActiveSlug(nextProduct.slug);
-                      } else {
-                        setActiveSlug(p.slug);
-                      }
-                    }
-                  },
-                },
-              }
+              { clipPath: "inset(8% 0% 0% 0%)", y: 60 },
+              { clipPath: "inset(0% 0% 0% 0%)", y: 0, ease: "none" },
+              0
             );
           }
         } else {
-          // Last chapter watermark fade-out as section exits into collection
           const collectionTrigger = document.getElementById("collection") || chapterEl;
+          const lastExitTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: collectionTrigger,
+              start: "top bottom",
+              end: "top top",
+              scrub: true,
+            },
+          });
           if (wmExit) {
-            gsap.fromTo(
-              wmExit,
-              { opacity: 1 },
-              {
-                opacity: 0,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: collectionTrigger,
-                  start: "top bottom",
-                  end: "top top",
-                  scrub: true,
-                },
-              }
-            );
+            lastExitTl.fromTo(wmExit, { opacity: 1 }, { opacity: 0, ease: "none" }, 0);
           }
           if (wmInner) {
-            gsap.fromTo(
+            lastExitTl.fromTo(
               wmInner,
               { xPercent: 0, opacity: 0.1 },
-              {
-                xPercent: -12.5,
-                opacity: 0.06,
-                ease: "none",
-                immediateRender: false,
-                scrollTrigger: {
-                  trigger: collectionTrigger,
-                  start: "top bottom",
-                  end: "top top",
-                  scrub: true,
-                },
-              }
+              { xPercent: -12.5, opacity: 0.06, ease: "none", immediateRender: false },
+              0
             );
           }
         }
 
-        // Desktop fine-pointer ONLY: float, orbit & dot, pointer tilt, magnetic CTA
+        // 6. Desktop fine-pointer ONLY: float, orbit & dot, pointer tilt, magnetic CTA
         let tiltController: InteractiveController | null = null;
         let magneticController: InteractiveController | null = null;
 
@@ -708,7 +527,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
         };
       });
 
-      // Tablet & Mobile (< 1024px): simple reveals, vertical scent trail, low static watermark
+      // Tablet & Mobile (< 1024px): batched simple fadeUp + maskReveal + vertical trail
       mm.add("(max-width: 1023px)", () => {
         if (wmOuter) gsap.set(wmOuter, { opacity: 1 });
         if (wmExit) gsap.set(wmExit, { opacity: 1 });
@@ -717,44 +536,38 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
         if (quoteWords.length > 0) gsap.set(quoteWords, { opacity: 1 });
         if (atmosphereCircle) gsap.set(atmosphereCircle, { scale: 1 });
 
-        const titleEl = chapterEl.querySelector("h3");
-        if (titleEl) {
-          gsap.fromTo(
-            titleEl,
-            { y: 20, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.7,
-              ease: "power3.out",
-              scrollTrigger: { trigger: chapterEl, start: "top 82%", once: true },
-            }
-          );
-        }
+        const mobTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: chapterEl,
+            start: "top 86%",
+            once: true,
+          },
+        });
 
-        if (trailLineMobile) {
-          const mobileTrailTl = gsap.timeline({
-            scrollTrigger: {
-              trigger: trailLineMobile.parentElement || chapterEl,
-              start: "top 85%",
-              once: true,
-            },
-          });
-          mobileTrailTl.fromTo(
-            trailLineMobile,
-            { scaleY: 0 },
-            { scaleY: 1, duration: 0.65, ease: "power2.out" },
+        if (photoClip) {
+          mobTl.fromTo(
+            photoClip,
+            { clipPath: "inset(100% 0% 0% 0%)" },
+            { clipPath: "inset(0% 0% 0% 0%)", duration: 0.9, ease: "power3.out" },
             0
           );
-          if (trailItemsMobile.length > 0) {
-            mobileTrailTl.fromTo(
-              trailItemsMobile,
-              { opacity: 0, x: -8 },
-              { opacity: 1, x: 0, duration: 0.4, stagger: 0.12, ease: "power3.out" },
-              0.08
-            );
-          }
         }
+        if (photoScale) {
+          mobTl.fromTo(photoScale, { scale: 1.08 }, { scale: 1, duration: 0.9, ease: "power3.out" }, 0);
+        }
+        if (frameStroke) {
+          mobTl.fromTo(frameStroke, { strokeDashoffset: 100 }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.out" }, 0.05);
+        }
+        const titleEl = chapterEl.querySelector("h3");
+        if (tagEnter) mobTl.fromTo(tagEnter, { x: -12, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6 }, 0);
+        if (roleInner) mobTl.fromTo(roleInner, { yPercent: 100, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.6 }, 0.05);
+        if (titleEl) mobTl.fromTo(titleEl, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.65 }, 0.08);
+        if (quoteMark) mobTl.fromTo(quoteMark, { opacity: 0 }, { opacity: 0.9, duration: 0.6 }, 0.1);
+        if (quoteRule) mobTl.fromTo(quoteRule, { scaleY: 0 }, { scaleY: 1, duration: 0.65 }, 0.1);
+        if (detailItems.length > 0) mobTl.fromTo(detailItems, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.1 }, 0.14);
+        if (rule) mobTl.fromTo(rule, { scaleX: 0 }, { scaleX: 1, duration: 0.6 }, 0.18);
+        if (trailLineMobile) mobTl.fromTo(trailLineMobile, { scaleY: 0 }, { scaleY: 1, duration: 0.65, ease: "power2.out" }, 0.2);
+        if (trailItemsMobile.length > 0) mobTl.fromTo(trailItemsMobile, { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.35, stagger: 0.12 }, 0.25);
       });
     });
 
@@ -818,14 +631,36 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
       ref={containerRef}
       className="relative w-full flex flex-col"
     >
-      {/* Vertical Progress Rail + Rolling 01 / 04 Counter (Solid flat plate, no glass/blur) */}
+      {/* Vertical Progress Rail + Rolling 01 / 04 Counter Above Dots (Solid flat plate, clear of text) */}
       <nav
         ref={railRef}
         aria-label="Scent chapters navigation"
-        className="hidden lg:flex fixed left-5 xl:left-8 top-1/2 -translate-y-1/2 z-50 items-center gap-2.5 opacity-0 pointer-events-none"
+        className="hidden lg:flex fixed left-3 xl:left-5 top-1/2 -translate-y-1/2 z-50 flex-col items-center gap-2.5 opacity-0 pointer-events-none"
       >
-        <div className="flex flex-col items-center gap-4 p-2.5 bg-cream border border-ink/15 rounded-full">
-          <span className="font-sans text-[9px] uppercase tracking-widest text-ink/70 rotate-180 [writing-mode:vertical-lr] mb-1">
+        {/* Rolling Cormorant Italic Counter */}
+        <div
+          data-rail-counter="true"
+          aria-live="polite"
+          className="flex items-center px-2 py-1 bg-cream border border-ink/15 font-display italic text-xs text-ink select-none"
+        >
+          <span className="inline-block h-[1.25em] overflow-hidden leading-[1.25em] align-middle">
+            <span
+              className="flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none"
+              style={{ transform: `translateY(-${activeIndex * 25}%)` }}
+            >
+              {PRODUCTS.map((item) => (
+                <span key={item.slug} className="block h-[1.25em] leading-[1.25em]">
+                  {item.number}
+                </span>
+              ))}
+            </span>
+          </span>
+          <span className="mx-0.5 text-ink/65">/</span>
+          <span>04</span>
+        </div>
+
+        <div className="flex flex-col items-center gap-3.5 p-2 bg-cream border border-ink/15 rounded-full">
+          <span className="font-sans text-[9px] uppercase tracking-widest text-ink/75 rotate-180 [writing-mode:vertical-lr] mb-1">
             SCENTS
           </span>
           {PRODUCTS.map((p, index) => {
@@ -848,7 +683,6 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
                       : "scale-[0.65] bg-ink/30 group-hover:bg-ink/60"
                   }`}
                 />
-                {/* Tooltip on hover */}
                 <span className="pointer-events-none absolute left-full ml-3 px-2 py-1 bg-ink text-cream text-[10px] font-sans font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-cream/15">
                   0{index + 1} · {p.name}
                 </span>
@@ -856,32 +690,10 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
             );
           })}
         </div>
-
-        {/* Rolling Cormorant Italic Counter beside the SCENTS rail */}
-        <div
-          data-rail-counter="true"
-          aria-live="polite"
-          className="flex items-center px-2.5 py-1 bg-cream border border-ink/15 font-display italic text-sm text-ink select-none"
-        >
-          <span className="inline-block h-[1.25em] overflow-hidden leading-[1.25em] align-middle">
-            <span
-              className="flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none"
-              style={{ transform: `translateY(-${activeIndex * 25}%)` }}
-            >
-              {PRODUCTS.map((item) => (
-                <span key={item.slug} className="block h-[1.25em] leading-[1.25em]">
-                  {item.number}
-                </span>
-              ))}
-            </span>
-          </span>
-          <span className="mx-1 text-ink/60">/</span>
-          <span>04</span>
-        </div>
       </nav>
 
       {/* Intro Header Row */}
-      <div className="w-full bg-cream pt-16 md:pt-24 pb-10 md:pb-14 px-5 md:px-12 border-b border-ink/10 z-10">
+      <div className="w-full bg-cream pt-16 md:pt-24 pb-10 md:pb-14 px-5 md:px-12 lg:px-20 xl:px-24 border-b border-ink/10 z-10">
         <div className="scent-intro-header max-w-[1440px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="mb-3">
@@ -915,7 +727,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
           : "linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 38%, rgba(0,0,0,0) 50%, rgba(0,0,0,0) 100%)";
 
         const mobileMaskGradient =
-          "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 42%, rgba(0,0,0,0) 58%, rgba(0,0,0,0) 100%)";
+          "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)";
 
         const watermarkMaskVars = {
           "--wm-mask-desktop": desktopMaskGradient,
@@ -928,22 +740,22 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
             id={product.slug}
             data-in-view="true"
             style={{ zIndex: (index + 1) * 10 }}
-            className={`chapter-card relative lg:sticky lg:top-0 w-full min-h-[100svh] lg:h-[100svh] py-14 lg:py-0 px-5 md:px-12 lg:px-16 flex items-center border-b border-ink/10 overflow-hidden ${bgClass}`}
+            className={`chapter-card relative lg:sticky lg:top-0 w-full min-h-[100svh] lg:h-[100svh] py-14 lg:py-0 px-5 md:px-12 lg:px-20 xl:px-24 flex items-center border-b border-ink/10 overflow-hidden ${bgClass}`}
           >
             {/* Screen reader anchor */}
             <span id={`chapter-${product.slug}`} className="sr-only" />
 
-            {/* Solid Ink Overlay for Stacking Dimming (No CSS transition competing with scrub) */}
+            {/* Solid Ink Overlay for Stacking Dimming */}
             <div
               className="chapter-curtain-overlay absolute inset-0 bg-ink pointer-events-none z-20 opacity-0"
               aria-hidden="true"
             />
 
-            {/* Quiet Persona-Coloured Watermark (Masked over Media Column only, fades 0 -> 0.06..0.10 -> 0) */}
+            {/* Quiet Persona-Coloured Watermark (Scoped to media block on mobile/tablet and media col on desktop) */}
             <div
               aria-hidden="true"
               style={watermarkMaskVars}
-              className="chapter-watermark absolute inset-0 pointer-events-none select-none overflow-hidden z-0 [mask-image:var(--wm-mask-mobile)] [-webkit-mask-image:var(--wm-mask-mobile)] lg:[mask-image:var(--wm-mask-desktop)] lg:[-webkit-mask-image:var(--wm-mask-desktop)]"
+              className="chapter-watermark absolute inset-x-0 top-0 h-[44%] lg:inset-0 lg:h-full pointer-events-none select-none overflow-hidden z-0 [mask-image:var(--wm-mask-mobile)] [-webkit-mask-image:var(--wm-mask-mobile)] lg:[mask-image:var(--wm-mask-desktop)] lg:[-webkit-mask-image:var(--wm-mask-desktop)]"
             >
               <div className="chapter-watermark-exit w-full h-full flex items-center">
                 <span
@@ -1091,7 +903,6 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
 
                   {/* 2. Lifestyle Photograph + 14px Drawn 1px Persona Frame + Parallax */}
                   <div className="persona-photo-scroll relative w-[calc(42%-24px)] translate-y-8 sm:translate-y-12 aspect-[3/4]">
-                    {/* 14px Offset 1px Persona-Colour SVG Frame Drawn on Enter */}
                     <svg
                       aria-hidden="true"
                       viewBox="0 0 100 100"
@@ -1198,11 +1009,11 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
                   ))}
                 </h3>
 
-                {/* Large Decorative Opening Quote Mark (96px Cormorant in Persona Colour, 0.9 Opacity) */}
+                {/* Large Decorative Opening Quote Mark (96px Cormorant Italic in Persona Colour, 0.9 Opacity) */}
                 <span
                   aria-hidden="true"
                   style={{ color: tintHex, opacity: 0.9 }}
-                  className="chapter-quote-mark font-display text-[96px] leading-[0.42] h-9 select-none pointer-events-none block"
+                  className="chapter-quote-mark font-display italic text-[96px] leading-[0.8] h-11 overflow-hidden select-none pointer-events-none block"
                 >
                   “
                 </span>
@@ -1266,7 +1077,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
                   </p>
                 </div>
 
-                {/* Notes Scent Trail (Horizontal on >=1024px Desktop, Vertical on Tablet/Mobile) */}
+                {/* Notes Scent Trail */}
                 <div
                   data-chapter-notes="true"
                   className="border-t border-ink/10 pt-3.5 mb-5"
@@ -1335,7 +1146,7 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
                   </div>
                 </div>
 
-                {/* Action Block: Sweep + Magnetic Discover Button + Secondary Marketplace Row */}
+                {/* Action Block */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 pt-1">
                   <div className="chapter-cta-magnetic inline-block w-fit">
                     <Link
@@ -1353,7 +1164,6 @@ export function ScentChapters({ availableLogos }: ScentChaptersProps = {}) {
                     </Link>
                   </div>
 
-                  {/* Secondary Marketplace Row */}
                   <div className="flex items-center gap-2.5">
                     <span className="font-sans text-[10px] uppercase tracking-[0.18em] text-ink/75">
                       AVAILABLE ON
